@@ -1,0 +1,36 @@
+/**
+ * Todo domain GraphQL definitions (presentation layer — Nexus / GraphQL only).
+ */
+import { DailyBrief, dailyBriefQuery } from "./todo.brief";
+import {
+  Todo,
+  TodoListFilter,
+  TodoListOrder,
+  TodoPriority,
+} from "./todo.node";
+import {
+  clearCompletedTodosMutation,
+  createTodoMutation,
+  deleteTodoMutation,
+  reorderTodosMutation,
+  toggleTodoMutation,
+  updateTodoMutation,
+} from "./todo.mutations";
+import { todoQuery, todosQuery } from "./todo.queries";
+
+export const todoGraphqlTypes = [
+  TodoPriority,
+  TodoListFilter,
+  TodoListOrder,
+  Todo,
+  DailyBrief,
+  todosQuery,
+  todoQuery,
+  dailyBriefQuery,
+  createTodoMutation,
+  updateTodoMutation,
+  toggleTodoMutation,
+  deleteTodoMutation,
+  reorderTodosMutation,
+  clearCompletedTodosMutation,
+];

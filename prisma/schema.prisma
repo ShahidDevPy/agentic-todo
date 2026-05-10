@@ -1,0 +1,35 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Todo {
+  id           String    @id @default(uuid())
+  title        String
+  description  String?
+  /** Google Tasks-style star / important marker */
+  starred      Boolean   @default(false)
+  isCompleted  Boolean   @default(false)
+  completedAt  DateTime?
+  dueDate      DateTime?
+  priority     String    @default("medium")
+  /** Manual order within a user’s list (drag-and-drop) */
+  sortOrder    Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  userId       String
+
+  @@index([userId, sortOrder])
+  @@index([userId, isCompleted])
+  @@index([userId, dueDate])
+}
