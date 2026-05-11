@@ -106,11 +106,11 @@ export const uiCopy = {
   brief: {
     cardTitle: "Daily brief",
     cardDescription:
-      "Summarizes open tasks with Gemini when your server has GEMINI_API_KEY, or a structured template if you choose template-only below.",
-    templateOnly: "Template only (no AI)",
-    sourceAi: "Gemini summary",
+      "A short summary of your open tasks. Turn on template-only for the same built-in layout every time.",
+    templateOnly: "Template only",
+    sourceAi: "Enhanced summary",
     sourceTemplate: "Template",
-    sourceAiFallback: "Template (AI unavailable)",
+    sourceAiFallback: "Standard summary",
     updatingBrief: "Updating brief…",
     refresh: "Refresh",
     retry: "Try again",

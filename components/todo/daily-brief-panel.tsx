@@ -183,7 +183,7 @@ export function DailyBriefPanel({
   })();
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden px-3 py-3 sm:gap-4 sm:px-5 sm:py-5">
+    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-3 overflow-hidden px-3 py-3 sm:gap-4 sm:px-5 sm:py-5">
       <WelcomeGreeting className="shrink-0" />
       <Card
         className={cn(

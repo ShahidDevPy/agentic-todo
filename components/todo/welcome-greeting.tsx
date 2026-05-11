@@ -20,17 +20,15 @@ export function WelcomeGreeting({ className }: Props) {
     <div
       className={`border-primary/15 from-card rounded-2xl border bg-gradient-to-br to-primary/5 p-4 shadow-sm ${className ?? ""}`}
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-start gap-3">
-          <MockUserBadge variant="inline" className="p-0" />
-          <div className="min-w-0 pt-0.5">
-            <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
-              {line}
-            </h1>
-            <p className="text-muted-foreground mt-1 max-w-prose text-sm leading-relaxed">
-              {uiCopy.welcome.subtitle}
-            </p>
-          </div>
+      <div className="flex min-w-0 flex-col items-stretch gap-3 sm:flex-row sm:items-start">
+        <MockUserBadge variant="inline" className="p-0 sm:shrink-0" />
+        <div className="min-w-0 pt-0.5 sm:pt-0">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+            {line}
+          </h1>
+          <p className="text-muted-foreground mt-1 max-w-prose text-sm leading-relaxed">
+            {uiCopy.welcome.subtitle}
+          </p>
         </div>
       </div>
     </div>

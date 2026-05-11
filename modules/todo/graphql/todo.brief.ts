@@ -9,7 +9,7 @@ export const DailyBrief = objectType({
     t.nonNull.int("overdueCount");
     t.nonNull.boolean("usedGemini", {
       description:
-        "True when summaryMarkdown was produced by the Gemini API (not the local template fallback).",
+        "True when summaryMarkdown used optional server-side enhancement instead of the built-in template alone.",
     });
   },
 });
@@ -17,12 +17,12 @@ export const DailyBrief = objectType({
 export const dailyBriefQuery = queryField("dailyBrief", {
   type: nonNull("DailyBrief"),
   description:
-    "LLM-enhanced motivational brief when GEMINI_MODEL + GEMINI_API_KEY are configured; falls back to a deterministic Markdown summary.",
+    "Daily task summary as Markdown; may use optional server-side enhancement when available, otherwise the built-in template.",
   args: {
     userId: nonNull(stringArg()),
     deterministicOnly: booleanArg({
       description:
-        "If true, skip the LLM and use only the deterministic template.",
+        "If true, use only the built-in Markdown template (no optional enhancement).",
       default: false,
     }),
     timeZone: stringArg({

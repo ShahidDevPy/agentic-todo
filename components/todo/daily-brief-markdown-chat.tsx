@@ -28,7 +28,7 @@ function chunkRevealDelayMs(chunkCount: number): number {
 
 type Props = {
   text: string;
-  /** Sequential bubble reveal (recommended for Gemini output). */
+  /** Sequential bubble reveal (recommended for streamed enhanced summaries). */
   stream: boolean;
   className?: string;
 };

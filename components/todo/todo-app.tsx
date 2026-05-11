@@ -69,7 +69,7 @@ export function TodoApp() {
   /** Routes: `/` = Daily brief, `/tasks` = My tasks. */
   const mainNav: MainNav = pathname === "/tasks" ? "tasks" : "assistant";
   const [createOpen, setCreateOpen] = useState(false);
-  /** When false, server uses Gemini (if GEMINI_API_KEY is set). When true, template only. */
+  /** When false, server may use optional enhancement for the brief. When true, template only. */
   const [briefDeterministic, setBriefDeterministic] = useState(false);
   const [selectedTodoId, setSelectedTodoId] = useState<string | null>(null);
   const [listSegment, setListSegment] = useState<TaskListSegment>("all");
@@ -335,7 +335,7 @@ export function TodoApp() {
     isMobile && mainNav === "tasks" && !!selectedTodo;
 
   return (
-    <div className="from-background to-muted/30 flex min-h-[100dvh] flex-col bg-gradient-to-b md:flex-row">
+    <div className="from-background to-muted/30 flex min-h-[100dvh] flex-col bg-gradient-to-b lg:flex-row">
       <TaskSidebar onCreateTask={() => setCreateOpen(true)} />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -454,7 +454,7 @@ export function TodoApp() {
       <Button
         type="button"
         size="icon"
-        className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 size-12 rounded-full shadow-lg sm:right-5 sm:bottom-[max(1.25rem,env(safe-area-inset-bottom))] sm:size-14 md:hidden"
+        className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 size-12 rounded-full shadow-lg sm:right-5 sm:bottom-[max(1.25rem,env(safe-area-inset-bottom))] sm:size-14 lg:hidden"
         onClick={() => setCreateOpen(true)}
         aria-label={uiCopy.a11y.newTaskFab}
       >

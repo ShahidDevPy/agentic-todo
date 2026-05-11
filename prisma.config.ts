@@ -2,13 +2,23 @@
 import { config as loadEnv } from "dotenv";
 import { resolve } from "node:path";
 import { defineConfig } from "prisma/config";
-import { requireDatabaseUrlForMigrate } from "./shared/lib/resolve-database-url";
 
 loadEnv({ path: resolve(process.cwd(), ".env") });
 loadEnv({ path: resolve(process.cwd(), ".env.local"), override: true });
 
-/** Direct DB only — never the Supabase pooler (see `requireDatabaseUrlForMigrate`). */
-const databaseUrl = requireDatabaseUrlForMigrate();
+function requireDirectUrl(): string {
+  const url = process.env.DIRECT_URL?.trim();
+  if (url) return url;
+  throw new Error(
+    [
+      "Missing DIRECT_URL.",
+      "Set DIRECT_URL for Prisma Migrate.",
+      "For a single local database you can use the same value as DATABASE_URL.",
+    ].join(" "),
+  );
+}
+
+const databaseUrl = requireDirectUrl();
 
 export default defineConfig({
   schema: "prisma/schema.prisma",

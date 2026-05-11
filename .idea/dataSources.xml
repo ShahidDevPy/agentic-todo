@@ -8,11 +8,18 @@
       <jdbc-url>jdbc:postgresql://db.almvrcihbcxgoffflusi.supabase.co:5432/postgres</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="postgres@localhost" uuid="8eb648a2-e0ae-4397-981d-24c82ef2b3c1">
+    <data-source source="LOCAL" name="postgres@localhost" uuid="eddd2969-7af0-418b-93a5-65c96996a909">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
       <jdbc-url>jdbc:postgresql://localhost:5432/postgres</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="postgres@aws-1-ap-south-1.pooler.supabase.com" uuid="ce509010-4863-499d-a319-12d2cf81fd1e">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://aws-1-ap-south-1.pooler.supabase.com:5432/postgres</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

@@ -1,17 +1,26 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import {
-  resolvePublicSupabaseAnonKey,
-  resolvePublicSupabaseUrl,
-} from "@/shared/lib/resolve-supabase-env";
 
-export async function middleware(request: NextRequest) {
+function publicSupabaseUrl(): string | undefined {
+  return process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || undefined;
+}
+
+function publicSupabaseAnonKey(): string | undefined {
+  return (
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ||
+    process.env.SUPABASE_ANON_KEY?.trim() ||
+    undefined
+  );
+}
+
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
     request: { headers: request.headers },
   });
 
-  const url = resolvePublicSupabaseUrl();
-  const key = resolvePublicSupabaseAnonKey();
+  const url = publicSupabaseUrl();
+  const key = publicSupabaseAnonKey();
   if (!url?.trim() || !key?.trim()) {
     return response;
   }
