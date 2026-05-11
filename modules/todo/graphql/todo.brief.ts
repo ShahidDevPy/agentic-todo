@@ -1,5 +1,6 @@
 import { booleanArg, nonNull, objectType, queryField, stringArg } from "nexus";
 import { generateDailyBrief } from "@/modules/todo/agent/generateDailyBrief";
+import { requireUserId } from "@/shared/graphql/require-auth";
 
 export const DailyBrief = objectType({
   name: "DailyBrief",
@@ -17,9 +18,8 @@ export const DailyBrief = objectType({
 export const dailyBriefQuery = queryField("dailyBrief", {
   type: nonNull("DailyBrief"),
   description:
-    "Daily task summary as Markdown; may use optional server-side enhancement when available, otherwise the built-in template.",
+    "Daily task summary as Markdown for the signed-in user; may use optional server-side enhancement when available, otherwise the built-in template.",
   args: {
-    userId: nonNull(stringArg()),
     deterministicOnly: booleanArg({
       description:
         "If true, use only the built-in Markdown template (no optional enhancement).",
@@ -30,9 +30,11 @@ export const dailyBriefQuery = queryField("dailyBrief", {
         "IANA timezone for due-today / overdue bucketing (e.g. America/New_York). Omit or invalid → UTC.",
     }),
   },
-  resolve: (_parent, { userId, deterministicOnly, timeZone }, ctx) =>
-    generateDailyBrief(ctx.prisma, userId, {
+  resolve: (_parent, { deterministicOnly, timeZone }, ctx) => {
+    const userId = requireUserId(ctx);
+    return generateDailyBrief(ctx.prisma, userId, {
       deterministicOnly: deterministicOnly ?? false,
       timeZone: timeZone ?? null,
-    }),
+    });
+  },
 });

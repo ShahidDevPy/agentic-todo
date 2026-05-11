@@ -1,4 +1,6 @@
+import { GraphQLError } from "graphql";
 import { arg, booleanArg, list, nonNull, queryField, stringArg } from "nexus";
+import { requireUserId } from "@/shared/graphql/require-auth";
 import { TodoListFilter, TodoListOrder } from "./todo.node";
 
 type TodoRow = {
@@ -27,9 +29,8 @@ function sortTodosSmart<T extends TodoRow>(rows: T[]): T[] {
 export const todosQuery = queryField("todos", {
   type: nonNull(list(nonNull("Todo"))),
   description:
-    "Tasks for a user. listOrder SMART = high priority & nearest due first; MANUAL = respects sortOrder from drag/reorder.",
+    "Tasks for the signed-in user. listOrder SMART = high priority & nearest due first; MANUAL = respects sortOrder from drag/reorder.",
   args: {
-    userId: nonNull(stringArg()),
     listFilter: arg({
       type: TodoListFilter,
       description:
@@ -46,7 +47,8 @@ export const todosQuery = queryField("todos", {
       default: false,
     }),
   },
-  resolve: async (_parent, { userId, listFilter, listOrder, starredOnly }, ctx) => {
+  resolve: async (_parent, { listFilter, listOrder, starredOnly }, ctx) => {
+    const userId = requireUserId(ctx);
     const completionClause =
       listFilter === "COMPLETED"
         ? { isCompleted: true }
@@ -76,5 +78,14 @@ export const todoQuery = queryField("todo", {
   args: {
     id: nonNull(stringArg()),
   },
-  resolve: (_parent, { id }, ctx) => ctx.prisma.todo.findUnique({ where: { id } }),
+  resolve: async (_parent, { id }, ctx) => {
+    const userId = requireUserId(ctx);
+    const row = await ctx.prisma.todo.findUnique({ where: { id } });
+    if (!row || row.userId !== userId) {
+      throw new GraphQLError("Todo not found", {
+        extensions: { code: "NOT_FOUND" },
+      });
+    }
+    return row;
+  },
 });

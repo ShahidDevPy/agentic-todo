@@ -65,6 +65,10 @@ function BriefLoadingSkeleton() {
 }
 
 type Props = {
+  /** First name (or generic) for the welcome line above the brief card. */
+  greetingName: string;
+  /** Optional profile photo URL for the welcome avatar (Google OAuth, etc). */
+  avatarUrl?: string | null;
   brief: DailyBriefQueryData["dailyBrief"] | null;
   loading: boolean;
   /** True while refetching; keeps previous brief visible. */
@@ -100,6 +104,8 @@ function ZeroOpenFooter({ onAddTask }: { onAddTask?: () => void }) {
 }
 
 export function DailyBriefPanel({
+  greetingName,
+  avatarUrl,
   brief,
   loading,
   briefRefetching,
@@ -184,7 +190,11 @@ export function DailyBriefPanel({
 
   return (
     <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-3 overflow-hidden px-3 py-3 sm:gap-4 sm:px-5 sm:py-5">
-      <WelcomeGreeting className="shrink-0" />
+      <WelcomeGreeting
+        className="shrink-0"
+        greetingName={greetingName}
+        avatarUrl={avatarUrl}
+      />
       <Card
         className={cn(
           "border-primary/20 flex min-h-0 flex-1 flex-col overflow-hidden shadow-md max-sm:gap-4 max-sm:py-4",

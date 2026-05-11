@@ -15,12 +15,14 @@ type DailyBrief {
 
 type Mutation {
   """Deletes all completed todos for this user."""
-  clearCompletedTodos(userId: String!): Int!
-  createTodo(description: String, dueDateISO: String, priority: TodoPriority, starred: Boolean = false, title: String!, userId: String!): Todo!
-  deleteTodo(id: String!, userId: String!): Boolean!
+  clearCompletedTodos: Int!
+  createTodo(description: String, dueDateISO: String, priority: TodoPriority, starred: Boolean = false, title: String!): Todo!
+  deleteTodo(id: String!): Boolean!
 
-  """Sets sortOrder by array index. Every id must belong to that user."""
-  reorderTodos(orderedIds: [String!]!, userId: String!): [Todo!]!
+  """
+  Sets sortOrder by array index. Every id must belong to the signed-in user.
+  """
+  reorderTodos(orderedIds: [String!]!): [Todo!]!
   toggleTodo(id: String!): Todo!
 
   """
@@ -31,7 +33,7 @@ type Mutation {
 
 type Query {
   """
-  Daily task summary as Markdown; may use optional server-side enhancement when available, otherwise the built-in template.
+  Daily task summary as Markdown for the signed-in user; may use optional server-side enhancement when available, otherwise the built-in template.
   """
   dailyBrief(
     """
@@ -43,12 +45,11 @@ type Query {
     IANA timezone for due-today / overdue bucketing (e.g. America/New_York). Omit or invalid → UTC.
     """
     timeZone: String
-    userId: String!
   ): DailyBrief!
   todo(id: String!): Todo
 
   """
-  Tasks for a user. listOrder SMART = high priority & nearest due first; MANUAL = respects sortOrder from drag/reorder.
+  Tasks for the signed-in user. listOrder SMART = high priority & nearest due first; MANUAL = respects sortOrder from drag/reorder.
   """
   todos(
     """ACTIVE = incomplete only (default). COMPLETED = done only. ALL = both."""
@@ -59,7 +60,6 @@ type Query {
     """
     listOrder: TodoListOrder = SMART
     starredOnly: Boolean = false
-    userId: String!
   ): [Todo!]!
 }
 

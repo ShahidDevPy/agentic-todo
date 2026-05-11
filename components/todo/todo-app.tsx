@@ -25,9 +25,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  getGreetingName,
+  getProfileAvatarUrl,
+} from "@/lib/auth/profile-meta";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import { useTodoListOrder } from "@/hooks/use-todo-list-order";
-import { useUserId } from "@/hooks/use-user-id";
 import { dueGroupForTodo } from "@/lib/todo-due-groups";
 import {
   filterTodosByTaskSegment,
@@ -59,7 +63,8 @@ import {
 type MainNav = "tasks" | "assistant";
 
 export function TodoApp() {
-  const userId = useUserId();
+  const { user, loading: authLoading, configured, signOut } = useAuth();
+  const userId = user?.id ?? null;
   const pathname = usePathname();
   const isMobile = useIsMobile();
   const [listOrder, setListOrder] = useTodoListOrder();
@@ -95,7 +100,6 @@ export function TodoApp() {
     todos: TodoGql[];
   }>(TODOS_QUERY, {
     variables: {
-      userId: userId ?? "",
       listFilter,
       listOrder,
       starredOnly,
@@ -111,7 +115,6 @@ export function TodoApp() {
     networkStatus: briefNetworkStatus,
   } = useQuery<DailyBriefQueryData>(DAILY_BRIEF_QUERY, {
     variables: {
-      userId: userId ?? "",
       deterministicOnly: briefDeterministic,
       timeZone: viewerTimeZone,
     },
@@ -235,7 +238,6 @@ export function TodoApp() {
       await createTodo({
         variables: {
           title: payload.title,
-          userId,
           description: payload.description,
           dueDateISO: payload.dueDateISO,
           priority: payload.priority,
@@ -257,7 +259,7 @@ export function TodoApp() {
       if (!row) return;
       next.splice(swap, 0, row);
       await reorderTodos({
-        variables: { userId, orderedIds: next.map((t) => t.id) },
+        variables: { orderedIds: next.map((t) => t.id) },
       });
     },
     [reorderTodos, setListOrder, todos, userId],
@@ -304,16 +306,26 @@ export function TodoApp() {
   const handleConfirmDelete = useCallback(async () => {
     if (!userId || !deleteTarget) return;
     await deleteTodo({
-      variables: { id: deleteTarget.id, userId },
+      variables: { id: deleteTarget.id },
     });
   }, [deleteTarget, deleteTodo, userId]);
 
   const handleConfirmClear = useCallback(async () => {
     if (!userId) return;
-    await clearCompleted({ variables: { userId } });
-  }, [clearCompleted, userId]);
+    await clearCompleted();
+  }, [clearCompleted]);
 
   const reorderEnabled = listOrder === "MANUAL";
+
+  const greetingName = useMemo(
+    () => getGreetingName(user, uiCopy.welcome.you),
+    [user],
+  );
+
+  const greetingAvatarUrl = useMemo(
+    () => getProfileAvatarUrl(user),
+    [user],
+  );
 
   const handleSelectTodo = useCallback((id: string) => {
     setSelectedTodoId(id);
@@ -322,6 +334,36 @@ export function TodoApp() {
   const handleListSegmentChange = useCallback((segment: TaskListSegment) => {
     setListSegment(segment);
   }, []);
+
+  if (!configured) {
+    return (
+      <div className="text-muted-foreground flex min-h-[40vh] flex-col items-center justify-center gap-2 px-4 text-center text-sm">
+        <p className="text-foreground max-w-md font-medium">
+          Sign-in is not configured.
+        </p>
+        <p className="max-w-md">
+          Add{" "}
+          <code className="text-foreground rounded bg-muted px-1 py-0.5 text-xs">
+            NEXT_PUBLIC_SUPABASE_URL
+          </code>{" "}
+          and{" "}
+          <code className="text-foreground rounded bg-muted px-1 py-0.5 text-xs">
+            NEXT_PUBLIC_SUPABASE_ANON_KEY
+          </code>{" "}
+          to <code className="text-xs">.env.local</code>, then restart the dev
+          server.
+        </p>
+      </div>
+    );
+  }
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
   if (!userId) {
     return (
@@ -336,7 +378,11 @@ export function TodoApp() {
 
   return (
     <div className="from-background to-muted/30 flex min-h-[100dvh] flex-col bg-gradient-to-b lg:flex-row">
-      <TaskSidebar onCreateTask={() => setCreateOpen(true)} />
+      <TaskSidebar
+        onCreateTask={() => setCreateOpen(true)}
+        userEmail={user?.email ?? undefined}
+        onSignOut={signOut}
+      />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <ErrorBanner
@@ -368,7 +414,12 @@ export function TodoApp() {
                       </p>
                     ) : null}
                   </div>
-                  <MockUserBadge variant="compact" className="shrink-0" />
+                  <MockUserBadge
+                    variant="compact"
+                    className="shrink-0 max-w-[min(100%,12rem)] sm:max-w-xs"
+                    profileTitle={greetingName}
+                    avatarUrl={greetingAvatarUrl}
+                  />
                 </div>
 
                 <div className="grid min-h-0 flex-1 overflow-hidden lg:grid-cols-[minmax(220px,30%)_minmax(0,1fr)]">
@@ -435,6 +486,8 @@ export function TodoApp() {
             >
               <div className={workspacePanelShellClassName()}>
                 <DailyBriefPanel
+                  greetingName={greetingName}
+                  avatarUrl={greetingAvatarUrl}
                   brief={brief}
                   loading={briefLoading}
                   briefRefetching={briefRefetching}

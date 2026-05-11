@@ -1,18 +1,25 @@
 "use client";
 
-import { ListTodo, Plus, Sparkles } from "lucide-react";
+import { ListTodo, LogOut, Plus, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { uiCopy } from "@/shared/messages/ui-copy";
 
 type Props = {
   onCreateTask: () => void;
+  userEmail?: string;
+  onSignOut: () => Promise<void>;
 };
 
-export function TaskSidebar({ onCreateTask }: Props) {
+export function TaskSidebar({
+  onCreateTask,
+  userEmail,
+  onSignOut,
+}: Props) {
   const pathname = usePathname();
+  const router = useRouter();
   const assistantActive = pathname === "/";
   const tasksActive = pathname === "/tasks";
   return (
@@ -76,11 +83,34 @@ export function TaskSidebar({ onCreateTask }: Props) {
         </Link>
       </nav>
 
-      <div className="text-muted-foreground border-border/70 mt-auto border-t px-3 py-3 text-xs leading-snug lg:mt-2 lg:px-4 lg:pt-3">
-        <p className="text-foreground/85 font-medium">
-          {uiCopy.sidebar.comingTitle}
-        </p>
-        <p className="mt-1">{uiCopy.sidebar.comingBody}</p>
+      <div className="text-muted-foreground border-border/70 mt-auto space-y-3 border-t px-3 py-3 text-xs leading-snug lg:mt-2 lg:px-4 lg:pt-3">
+        {userEmail ? (
+          <div className="space-y-2">
+            <p className="text-foreground/90 truncate text-[11px] font-medium">
+              {userEmail}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 w-full gap-1.5 text-xs"
+              onClick={async () => {
+                await onSignOut();
+                router.push("/login");
+                router.refresh();
+              }}
+            >
+              <LogOut className="size-3.5 shrink-0 opacity-80" aria-hidden />
+              Sign out
+            </Button>
+          </div>
+        ) : null}
+        <div>
+          <p className="text-foreground/85 font-medium">
+            {uiCopy.sidebar.comingTitle}
+          </p>
+          <p className="mt-1">{uiCopy.sidebar.comingBody}</p>
+        </div>
       </div>
     </aside>
   );

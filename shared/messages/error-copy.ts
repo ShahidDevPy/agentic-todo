@@ -17,6 +17,8 @@ export const errorCopy = {
 
   /** Fallback when we only have a technical Error#message */
   unexpected: "An unexpected error occurred.",
+
+  authRequired: "Please sign in again to continue.",
 } as const;
 
 export type GraphqlErrorCode =
@@ -34,5 +36,5 @@ export const graphqlCodeMessage: Partial<
   NOT_FOUND: errorCopy.notFound,
   BAD_USER_INPUT: errorCopy.badInput,
   FORBIDDEN: errorCopy.notFound,
-  UNAUTHENTICATED: errorCopy.notFound,
+  UNAUTHENTICATED: errorCopy.authRequired,
 };

@@ -12,16 +12,28 @@ function greetingForHour(d: Date): string {
 
 type Props = {
   className?: string;
+  /** First name from profile, or a generic label (e.g. “You”) — shown once in the headline. */
+  greetingName: string;
+  /** Optional avatar URL for the greeting badge (Google OAuth, etc). */
+  avatarUrl?: string | null;
 };
 
-export function WelcomeGreeting({ className }: Props) {
-  const line = `${greetingForHour(new Date())}, ${uiCopy.welcome.name}`;
+export function WelcomeGreeting({
+  className,
+  greetingName,
+  avatarUrl,
+}: Props) {
+  const line = `${greetingForHour(new Date())}, ${greetingName}`;
   return (
     <div
-      className={`border-primary/15 from-card rounded-2xl border bg-gradient-to-br to-primary/5 p-4 shadow-sm ${className ?? ""}`}
+      className={`border-primary/20 from-card rounded-2xl border bg-gradient-to-br to-primary/5 p-4 shadow-md ring-1 ring-black/[0.04] dark:ring-white/[0.06] ${className ?? ""}`}
     >
       <div className="flex min-w-0 flex-col items-stretch gap-3 sm:flex-row sm:items-start">
-        <MockUserBadge variant="inline" className="p-0 sm:shrink-0" />
+        <MockUserBadge
+          variant="greeting"
+          className="p-0 sm:shrink-0"
+          avatarUrl={avatarUrl}
+        />
         <div className="min-w-0 pt-0.5 sm:pt-0">
           <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
             {line}

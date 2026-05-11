@@ -291,6 +291,15 @@ export async function generateDailyBrief(
     },
   });
 
+  if (pendingTodos.length === 0) {
+    return {
+      summaryMarkdown: deterministicDailyBrief([], now, timeZone),
+      pendingCount: 0,
+      overdueCount: 0,
+      usedGemini: false,
+    };
+  }
+
   const buckets = bucketTasks(pendingTodos, now, timeZone);
   const overdueCount = buckets.get("overdue")!.length;
 

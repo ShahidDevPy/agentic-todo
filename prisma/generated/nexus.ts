@@ -127,24 +127,18 @@ export interface NexusGenFieldTypeNames {
 
 export interface NexusGenArgTypes {
   Mutation: {
-    clearCompletedTodos: { // args
-      userId: string; // String!
-    }
     createTodo: { // args
       description?: string | null; // String
       dueDateISO?: string | null; // String
       priority?: NexusGenEnums['TodoPriority'] | null; // TodoPriority
       starred?: boolean | null; // Boolean
       title: string; // String!
-      userId: string; // String!
     }
     deleteTodo: { // args
       id: string; // String!
-      userId: string; // String!
     }
     reorderTodos: { // args
       orderedIds: string[]; // [String!]!
-      userId: string; // String!
     }
     toggleTodo: { // args
       id: string; // String!
@@ -163,7 +157,6 @@ export interface NexusGenArgTypes {
     dailyBrief: { // args
       deterministicOnly?: boolean | null; // Boolean
       timeZone?: string | null; // String
-      userId: string; // String!
     }
     todo: { // args
       id: string; // String!
@@ -172,7 +165,6 @@ export interface NexusGenArgTypes {
       listFilter: NexusGenEnums['TodoListFilter'] | null; // TodoListFilter
       listOrder: NexusGenEnums['TodoListOrder'] | null; // TodoListOrder
       starredOnly?: boolean | null; // Boolean
-      userId: string; // String!
     }
   }
 }

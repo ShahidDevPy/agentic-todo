@@ -6,13 +6,20 @@ export const uiCopy = {
 
   mockUser: {
     displayName: "You",
-    status: "Personal profile (mock — sign-in later)",
+    status: "Personal workspace",
+  },
+
+  account: {
+    /** Shown on profile chip when the account has no email (rare). */
+    signedInFallback: "Signed in",
   },
 
   welcome: {
     morning: "Good morning",
     afternoon: "Good afternoon",
     evening: "Good evening",
+    /** Greeting when `first_name` is not in profile (no email in this slot). */
+    you: "You",
     name: "there",
     subtitle:
       "Your daily brief and open tasks below — one place to plan the day.",
@@ -20,7 +27,7 @@ export const uiCopy = {
 
   addTask: {
     title: "Add task",
-    description: "Tied to this browser profile until you add Supabase sign-in.",
+    description: "Saved to your signed-in account.",
     titleLabel: "Title",
     notesLabel: "Notes",
     priorityLabel: "Priority",

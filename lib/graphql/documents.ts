@@ -2,13 +2,11 @@ import { gql } from "@apollo/client";
 
 export const TODOS_QUERY = gql`
   query Todos(
-    $userId: String!
     $listFilter: TodoListFilter
     $listOrder: TodoListOrder
     $starredOnly: Boolean
   ) {
     todos(
-      userId: $userId
       listFilter: $listFilter
       listOrder: $listOrder
       starredOnly: $starredOnly
@@ -28,16 +26,8 @@ export const TODOS_QUERY = gql`
 `;
 
 export const DAILY_BRIEF_QUERY = gql`
-  query DailyBrief(
-    $userId: String!
-    $deterministicOnly: Boolean
-    $timeZone: String
-  ) {
-    dailyBrief(
-      userId: $userId
-      deterministicOnly: $deterministicOnly
-      timeZone: $timeZone
-    ) {
+  query DailyBrief($deterministicOnly: Boolean, $timeZone: String) {
+    dailyBrief(deterministicOnly: $deterministicOnly, timeZone: $timeZone) {
       summaryMarkdown
       pendingCount
       overdueCount
@@ -49,7 +39,6 @@ export const DAILY_BRIEF_QUERY = gql`
 export const CREATE_TODO = gql`
   mutation CreateTodo(
     $title: String!
-    $userId: String!
     $description: String
     $dueDateISO: String
     $priority: TodoPriority
@@ -57,7 +46,6 @@ export const CREATE_TODO = gql`
   ) {
     createTodo(
       title: $title
-      userId: $userId
       description: $description
       dueDateISO: $dueDateISO
       priority: $priority
@@ -113,20 +101,20 @@ export const UPDATE_TODO = gql`
 `;
 
 export const DELETE_TODO = gql`
-  mutation DeleteTodo($id: String!, $userId: String!) {
-    deleteTodo(id: $id, userId: $userId)
+  mutation DeleteTodo($id: String!) {
+    deleteTodo(id: $id)
   }
 `;
 
 export const CLEAR_COMPLETED = gql`
-  mutation ClearCompleted($userId: String!) {
-    clearCompletedTodos(userId: $userId)
+  mutation ClearCompleted {
+    clearCompletedTodos
   }
 `;
 
 export const REORDER_TODOS = gql`
-  mutation ReorderTodos($userId: String!, $orderedIds: [String!]!) {
-    reorderTodos(userId: $userId, orderedIds: $orderedIds) {
+  mutation ReorderTodos($orderedIds: [String!]!) {
+    reorderTodos(orderedIds: $orderedIds) {
       id
       sortOrder
     }

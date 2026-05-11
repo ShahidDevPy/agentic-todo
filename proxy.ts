@@ -1,6 +1,5 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-
 function publicSupabaseUrl(): string | undefined {
   return process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || undefined;
 }
@@ -12,6 +11,14 @@ function publicSupabaseAnonKey(): string | undefined {
     process.env.SUPABASE_ANON_KEY?.trim() ||
     undefined
   );
+}
+
+function isPublicPath(pathname: string): boolean {
+  if (pathname.startsWith("/login")) return true;
+  if (pathname.startsWith("/auth")) return true;
+  if (pathname.startsWith("/api")) return true;
+  if (pathname.startsWith("/_next")) return true;
+  return false;
 }
 
 export async function proxy(request: NextRequest) {
@@ -47,7 +54,23 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  await supabase.auth.getUser();
+  const pathname = request.nextUrl.pathname;
+
+  if (pathname.startsWith("/api")) {
+    await supabase.auth.getUser();
+    return response;
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user && !isPublicPath(pathname)) {
+    const login = new URL("/login", request.url);
+    const nextPath = `${pathname}${request.nextUrl.search}`;
+    login.searchParams.set("next", nextPath || "/");
+    return NextResponse.redirect(login);
+  }
 
   return response;
 }

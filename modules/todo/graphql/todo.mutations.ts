@@ -10,12 +10,12 @@ import {
   stringArg,
 } from "nexus";
 import { TodoPriority } from "./todo.node";
+import { requireUserId } from "@/shared/graphql/require-auth";
 
 export const createTodoMutation = mutationField("createTodo", {
   type: nonNull("Todo"),
   args: {
     title: nonNull(stringArg()),
-    userId: nonNull(stringArg()),
     description: nullable(stringArg()),
     dueDateISO: nullable(stringArg()),
     priority: arg({ type: TodoPriority }),
@@ -23,16 +23,10 @@ export const createTodoMutation = mutationField("createTodo", {
   },
   resolve: async (
     _parent,
-    {
-      title,
-      userId,
-      description,
-      dueDateISO,
-      priority,
-      starred,
-    },
+    { title, description, dueDateISO, priority, starred },
     ctx,
   ) => {
+    const userId = requireUserId(ctx);
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
       throw new GraphQLError("Title is required", {
@@ -103,8 +97,9 @@ export const updateTodoMutation = mutationField("updateTodo", {
     dueDateISO: nullable(stringArg()),
   },
   resolve: async (_parent, args, ctx) => {
+    const userId = requireUserId(ctx);
     const existing = await ctx.prisma.todo.findUnique({ where: { id: args.id } });
-    if (!existing) {
+    if (!existing || existing.userId !== userId) {
       throw new GraphQLError("Todo not found", {
         extensions: { code: "NOT_FOUND" },
       });
@@ -172,8 +167,9 @@ export const toggleTodoMutation = mutationField("toggleTodo", {
     id: nonNull(stringArg()),
   },
   resolve: async (_parent, { id }, ctx) => {
+    const userId = requireUserId(ctx);
     const existing = await ctx.prisma.todo.findUnique({ where: { id } });
-    if (!existing) {
+    if (!existing || existing.userId !== userId) {
       throw new GraphQLError("Todo not found", {
         extensions: { code: "NOT_FOUND" },
       });
@@ -193,9 +189,9 @@ export const deleteTodoMutation = mutationField("deleteTodo", {
   type: nonNull("Boolean"),
   args: {
     id: nonNull(stringArg()),
-    userId: nonNull(stringArg()),
   },
-  resolve: async (_parent, { id, userId }, ctx) => {
+  resolve: async (_parent, { id }, ctx) => {
+    const userId = requireUserId(ctx);
     const deleted = await ctx.prisma.todo.deleteMany({
       where: { id, userId },
     });
@@ -211,10 +207,9 @@ export const deleteTodoMutation = mutationField("deleteTodo", {
 export const clearCompletedTodosMutation = mutationField("clearCompletedTodos", {
   type: nonNull("Int"),
   description: "Deletes all completed todos for this user.",
-  args: {
-    userId: nonNull(stringArg()),
-  },
-  resolve: async (_parent, { userId }, ctx) => {
+  args: {},
+  resolve: async (_parent, _args, ctx) => {
+    const userId = requireUserId(ctx);
     const res = await ctx.prisma.todo.deleteMany({
       where: { userId, isCompleted: true },
     });
@@ -225,12 +220,12 @@ export const clearCompletedTodosMutation = mutationField("clearCompletedTodos", 
 export const reorderTodosMutation = mutationField("reorderTodos", {
   type: nonNull(list(nonNull("Todo"))),
   description:
-    "Sets sortOrder by array index. Every id must belong to that user.",
+    "Sets sortOrder by array index. Every id must belong to the signed-in user.",
   args: {
-    userId: nonNull(stringArg()),
     orderedIds: nonNull(list(nonNull(stringArg()))),
   },
-  resolve: async (_parent, { userId, orderedIds }, ctx) => {
+  resolve: async (_parent, { orderedIds }, ctx) => {
+    const userId = requireUserId(ctx);
     const uniqueLen = new Set(orderedIds).size;
     if (uniqueLen !== orderedIds.length) {
       throw new GraphQLError("orderedIds contains duplicates", {
