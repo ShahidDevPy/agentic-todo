@@ -384,15 +384,32 @@ export function TodoApp() {
         onSignOut={signOut}
       />
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 flex-col",
+          mainNav === "assistant" ? "max-lg:min-h-0 max-lg:overflow-y-auto" : "min-h-0",
+        )}
+      >
         <ErrorBanner
           className="shrink-0 px-3 pt-3 sm:px-6 sm:pt-4"
           message={bannerMessage}
           onDismiss={dismissBanner}
         />
 
-        <main className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col px-3 py-4 sm:px-6 sm:py-8">
-          <div className="relative isolate flex min-h-0 flex-1 flex-col">
+        <main
+          className={cn(
+            "mx-auto flex w-full max-w-6xl flex-1 flex-col px-3 py-4 sm:px-6 sm:py-8",
+            mainNav === "assistant"
+              ? "max-lg:min-h-0 max-lg:overflow-y-auto"
+              : "min-h-0",
+          )}
+        >
+          <div
+            className={cn(
+              "relative isolate flex flex-1 flex-col",
+              mainNav === "tasks" && "min-h-0",
+            )}
+          >
             <section
               aria-hidden={mainNav !== "tasks"}
               className={cn(
@@ -480,14 +497,20 @@ export function TodoApp() {
               className={cn(
                 "transition-opacity duration-200 ease-out motion-reduce:transition-none",
                 mainNav === "assistant"
-                  ? "relative z-10 flex min-h-0 flex-1 flex-col opacity-100"
+                  ? "relative z-10 flex flex-1 flex-col opacity-100 max-lg:min-h-0 lg:min-h-0"
                   : "pointer-events-none absolute inset-0 z-0 overflow-hidden opacity-0",
               )}
             >
-              <div className={workspacePanelShellClassName()}>
+              <div className={workspacePanelShellClassName(undefined, { layout: "assistant" })}>
                 <DailyBriefPanel
                   greetingName={greetingName}
                   avatarUrl={greetingAvatarUrl}
+                  timeZone={viewerTimeZone}
+                  onAssistantTasksChanged={() => {
+                    void refetch();
+                    void refetchBrief();
+                  }}
+                  assistantDisabled={!userId}
                   brief={brief}
                   loading={briefLoading}
                   briefRefetching={briefRefetching}

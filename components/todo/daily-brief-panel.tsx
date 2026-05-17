@@ -1,7 +1,14 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { ClipboardList, Loader2, Sparkles } from "lucide-react";
+import { ClipboardList, Loader2, Send, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AssistantActionPreview } from "@/components/assistant/assistant-action-preview";
+import { AssistantMessage } from "@/components/assistant/assistant-message";
+import { AssistantMicButton } from "@/components/assistant/assistant-mic-button";
+import { AssistantStatusChip } from "@/components/assistant/assistant-status-chip";
+import { ErrorBanner } from "@/components/common/error-banner";
+import { WelcomeGreeting } from "@/components/todo/welcome-greeting";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,7 +17,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { WelcomeGreeting } from "@/components/todo/welcome-greeting";
+import { Textarea } from "@/components/ui/textarea";
+import { useAssistant } from "@/hooks/use-assistant";
+import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
+import { DAILY_BRIEF_ASSISTANT_FEED_SCROLL_CLASS } from "@/lib/ui/workspace-panel";
 import { cn } from "@/lib/utils";
 import { uiCopy } from "@/shared/messages/ui-copy";
 import type { DailyBriefQueryData } from "@/types/todo-view";
@@ -65,15 +75,14 @@ function BriefLoadingSkeleton() {
 }
 
 type Props = {
-  /** First name (or generic) for the welcome line above the brief card. */
   greetingName: string;
-  /** Optional profile photo URL for the welcome avatar (Google OAuth, etc). */
   avatarUrl?: string | null;
+  timeZone: string;
+  onAssistantTasksChanged?: () => void;
+  assistantDisabled?: boolean;
   brief: DailyBriefQueryData["dailyBrief"] | null;
   loading: boolean;
-  /** True while refetching; keeps previous brief visible. */
   briefRefetching?: boolean;
-  /** True when the dailyBrief query failed (network or server). */
   briefQueryFailed: boolean;
   deterministicOnly: boolean;
   onDeterministicChange: (value: boolean) => void;
@@ -106,6 +115,9 @@ function ZeroOpenFooter({ onAddTask }: { onAddTask?: () => void }) {
 export function DailyBriefPanel({
   greetingName,
   avatarUrl,
+  timeZone,
+  onAssistantTasksChanged,
+  assistantDisabled,
   brief,
   loading,
   briefRefetching,
@@ -116,6 +128,33 @@ export function DailyBriefPanel({
   disabled,
   onAddTask,
 }: Props) {
+  const [draft, setDraft] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const {
+    messages,
+    status,
+    error,
+    pendingPreview,
+    interpret,
+    confirmPending,
+    cancelPending,
+    setError,
+  } = useAssistant({ timeZone, onTasksChanged: onAssistantTasksChanged });
+
+  const handleVoiceFinal = useCallback(
+    (text: string) => {
+      setDraft(text);
+      void interpret(text);
+    },
+    [interpret],
+  );
+
+  const speech = useSpeechRecognition({ onFinal: handleVoiceFinal });
+
+  const assistantBusy =
+    assistantDisabled || status === "thinking" || status === "applying";
+
   const zeroOpen = !loading && brief && brief.pendingCount === 0;
 
   const sourceBadge = (() => {
@@ -129,14 +168,32 @@ export function DailyBriefPanel({
     return { label: uiCopy.brief.sourceAiFallback, variant: "fallback" as const };
   })();
 
-  const bodyContent = (() => {
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages, status, brief?.summaryMarkdown, loading, briefRefetching]);
+
+  const handleSubmit = useCallback(
+    (e?: React.FormEvent) => {
+      e?.preventDefault();
+      const text = draft.trim();
+      if (!text || assistantBusy) return;
+      setDraft("");
+      void interpret(text);
+    },
+    [assistantBusy, draft, interpret],
+  );
+
+  const briefSection = (() => {
     if (loading && !brief) {
       return <BriefLoadingSkeleton />;
     }
     if (briefQueryFailed && !loading) {
       return (
-        <div className="flex flex-col items-center gap-3 px-2 py-8 text-center">
-          <p className="text-foreground font-medium">{uiCopy.brief.loadFailedTitle}</p>
+        <div className="flex flex-col items-center gap-3 px-2 py-6 text-center">
+          <p className="text-foreground font-medium">
+            {uiCopy.brief.loadFailedTitle}
+          </p>
           <p className="text-muted-foreground max-w-sm text-sm">
             {uiCopy.brief.loadFailedBody}
           </p>
@@ -189,93 +246,195 @@ export function DailyBriefPanel({
   })();
 
   return (
-    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-3 overflow-hidden px-3 py-3 sm:gap-4 sm:px-5 sm:py-5">
-      <WelcomeGreeting
-        className="shrink-0"
-        greetingName={greetingName}
-        avatarUrl={avatarUrl}
-      />
-      <Card
-        className={cn(
-          "border-primary/20 flex min-h-0 flex-1 flex-col overflow-hidden shadow-md max-sm:gap-4 max-sm:py-4",
-        )}
-      >
-        <CardHeader className="shrink-0 space-y-0 px-4 pb-2 sm:px-6">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <CardTitle className="flex flex-wrap items-center gap-2 text-base sm:text-lg">
-                <Sparkles className="text-primary size-4 shrink-0 sm:size-5" aria-hidden />
-                <span>{uiCopy.brief.cardTitle}</span>
-                {sourceBadge ? (
-                  <span
-                    className={cn(
-                      "max-w-[min(100%,14rem)] truncate rounded-full px-2 py-0.5 text-xs font-medium sm:max-w-none",
-                      sourceBadge.variant === "ai" &&
-                        "bg-primary/15 text-primary",
-                      sourceBadge.variant === "template" &&
-                        "bg-muted text-muted-foreground",
-                      sourceBadge.variant === "fallback" &&
-                        "bg-amber-500/15 text-amber-800 dark:text-amber-200",
-                    )}
-                    title={sourceBadge.label}
-                  >
-                    {sourceBadge.label}
-                  </span>
-                ) : null}
-              </CardTitle>
-              <CardDescription className="mt-1">
-                {uiCopy.brief.cardDescription}
-              </CardDescription>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <label className="text-muted-foreground flex max-w-[min(100%,12rem)] cursor-pointer items-start gap-2 text-xs sm:max-w-none">
-                <input
-                  type="checkbox"
-                  checked={deterministicOnly}
-                  onChange={(e) => onDeterministicChange(e.target.checked)}
-                  className="accent-primary mt-0.5 shrink-0"
+    <div className="flex flex-col max-lg:min-h-0 lg:min-h-0 lg:flex-1 lg:overflow-hidden">
+      <div className="border-border/40 bg-card/95 supports-[backdrop-filter]:bg-card/80 max-lg:relative lg:sticky lg:top-0 z-10 shrink-0 border-b px-3 py-3 backdrop-blur-sm sm:px-5 sm:py-4">
+        <WelcomeGreeting greetingName={greetingName} avatarUrl={avatarUrl} />
+      </div>
+
+      <div className="flex min-h-0 flex-1 flex-col p-3 sm:p-4 lg:overflow-hidden">
+        <Card
+          className={cn(
+            "border-primary/20 flex flex-col shadow-md max-sm:gap-4 max-sm:py-4",
+            "max-lg:overflow-visible",
+            "lg:min-h-0 lg:flex-1 lg:overflow-hidden",
+          )}
+        >
+          <CardHeader className="shrink-0 space-y-2 px-4 pb-2 sm:px-6">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <CardTitle className="flex flex-wrap items-center gap-2 text-base sm:text-lg">
+                  <Sparkles
+                    className="text-primary size-4 shrink-0 sm:size-5"
+                    aria-hidden
+                  />
+                  <span>{uiCopy.brief.cardTitle}</span>
+                  {sourceBadge ? (
+                    <span
+                      className={cn(
+                        "max-w-[min(100%,14rem)] truncate rounded-full px-2 py-0.5 text-xs font-medium sm:max-w-none",
+                        sourceBadge.variant === "ai" &&
+                          "bg-primary/15 text-primary",
+                        sourceBadge.variant === "template" &&
+                          "bg-muted text-muted-foreground",
+                        sourceBadge.variant === "fallback" &&
+                          "bg-amber-500/15 text-amber-800 dark:text-amber-200",
+                      )}
+                      title={sourceBadge.label}
+                    >
+                      {sourceBadge.label}
+                    </span>
+                  ) : null}
+                </CardTitle>
+                <CardDescription className="mt-1">
+                  {uiCopy.brief.cardDescription}
+                </CardDescription>
+                <AssistantStatusChip
+                  status={status}
+                  listening={speech.listening}
+                  className="mt-2"
                 />
-                <span>{uiCopy.brief.templateOnly}</span>
-              </label>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="text-muted-foreground flex max-w-[min(100%,12rem)] cursor-pointer items-start gap-2 text-xs sm:max-w-none">
+                  <input
+                    type="checkbox"
+                    checked={deterministicOnly}
+                    onChange={(e) =>
+                      onDeterministicChange(e.target.checked)
+                    }
+                    className="accent-primary mt-0.5 shrink-0"
+                  />
+                  <span>{uiCopy.brief.templateOnly}</span>
+                </label>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={disabled}
+                  onClick={onRefresh}
+                >
+                  {loading && !brief ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    uiCopy.brief.refresh
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {brief ? (
+              <div className="text-muted-foreground flex flex-wrap gap-3 text-xs">
+                <span>
+                  {uiCopy.brief.statsOpen}:{" "}
+                  <strong className="text-foreground">
+                    {brief.pendingCount}
+                  </strong>
+                </span>
+                <span>
+                  {uiCopy.brief.statsOverdue}:{" "}
+                  <strong className="text-foreground">
+                    {brief.overdueCount}
+                  </strong>
+                </span>
+              </div>
+            ) : null}
+          </CardHeader>
+
+          <CardContent className="flex flex-col gap-3 px-4 pb-4 pt-0 sm:gap-4 sm:px-6 sm:pb-6 lg:min-h-0 lg:flex-1">
+            {error ? (
+              <ErrorBanner
+                message={error}
+                onDismiss={() => setError(null)}
+                className="shrink-0 text-xs"
+              />
+            ) : null}
+            {speech.error ? (
+              <p className="text-destructive shrink-0 text-xs" role="alert">
+                {speech.error}
+              </p>
+            ) : null}
+
+            <div
+              ref={scrollRef}
+              className={cn(
+                "bg-muted/25 rounded-xl p-3 sm:p-4",
+                DAILY_BRIEF_ASSISTANT_FEED_SCROLL_CLASS,
+                zeroOpen &&
+                  "ring-1 ring-dashed ring-border/50 dark:ring-border/60",
+              )}
+              aria-label={uiCopy.assistant.messagesLabel}
+            >
+              <section aria-label={uiCopy.brief.cardTitle}>{briefSection}</section>
+
+              {messages.length > 0 ? (
+                <>
+                  <div
+                    className="border-border/50 my-4 border-t border-dashed"
+                    role="separator"
+                  />
+                  <section
+                    className="flex flex-col gap-3"
+                    aria-label={uiCopy.assistant.messagesLabel}
+                  >
+                    {messages.map((m) => (
+                      <AssistantMessage key={m.id} message={m} />
+                    ))}
+                  </section>
+                </>
+              ) : brief && !loading ? (
+                <p className="text-muted-foreground mt-4 border-t border-dashed border-border/50 pt-4 text-sm leading-relaxed">
+                  {uiCopy.assistant.commandsHint}
+                </p>
+              ) : null}
+            </div>
+
+            {pendingPreview &&
+            (status === "preview" || status === "applying") ? (
+              <AssistantActionPreview
+                preview={pendingPreview}
+                loading={status === "applying"}
+                onConfirm={() => void confirmPending()}
+                onCancel={cancelPending}
+              />
+            ) : null}
+
+            <form
+              className="flex shrink-0 items-end gap-2"
+              onSubmit={handleSubmit}
+            >
+              <AssistantMicButton
+                listening={speech.listening}
+                supported={speech.supported}
+                disabled={assistantBusy}
+                onStart={speech.start}
+                onStop={speech.stop}
+              />
+              <Textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder={uiCopy.assistant.inputPlaceholder}
+                rows={2}
+                disabled={assistantBusy}
+                className="min-h-[2.75rem] flex-1 resize-none text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit();
+                  }
+                }}
+              />
               <Button
-                size="sm"
-                variant="outline"
-                disabled={disabled}
-                onClick={onRefresh}
+                type="submit"
+                size="icon"
+                className="size-10 shrink-0 rounded-full"
+                disabled={assistantBusy || !draft.trim()}
+                aria-label={uiCopy.assistant.send}
               >
-                {loading && !brief ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  uiCopy.brief.refresh
-                )}
+                <Send className="size-4" aria-hidden />
               </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="flex min-h-0 flex-1 flex-col gap-3 px-4 pb-4 pt-0 sm:gap-4 sm:px-6 sm:pb-6">
-          {brief ? (
-            <div className="text-muted-foreground flex shrink-0 flex-wrap gap-3 text-xs">
-              <span>
-                {uiCopy.brief.statsOpen}:{" "}
-                <strong className="text-foreground">{brief.pendingCount}</strong>
-              </span>
-              <span>
-                {uiCopy.brief.statsOverdue}:{" "}
-                <strong className="text-foreground">{brief.overdueCount}</strong>
-              </span>
-            </div>
-          ) : null}
-          <div
-            className={cn(
-              "bg-muted/25 min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-xl p-3 sm:p-4",
-              zeroOpen &&
-                "ring-1 ring-dashed ring-border/50 dark:ring-border/60",
-            )}
-          >
-            {bodyContent}
-          </div>
-        </CardContent>
-      </Card>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

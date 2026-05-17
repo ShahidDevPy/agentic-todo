@@ -41,9 +41,31 @@ export const uiCopy = {
     tasks: "My tasks",
     assistant: "Daily brief",
     newTask: "New task",
-    comingTitle: "Todo assistant (chat)",
+    comingTitle: "Daily brief + assistant",
     comingBody:
-      "Coming next: chat with an assistant to create, update, or delete tasks for you.",
+      "Your brief loads automatically; then ask to add tasks, change priority, or refresh the summary.",
+  },
+
+  assistant: {
+    title: "Daily brief",
+    description:
+      "Summary of open tasks on load. Type or use the mic to manage tasks or refresh the brief.",
+    commandsHint:
+      "Ask below to add tasks, update priority, complete, delete, or say “refresh my brief”.",
+    emptyHint:
+      'Try “Add buy milk tomorrow”, “Mark the design review complete”, or “Refresh my brief”.',
+    inputPlaceholder: "Ask or command…",
+    send: "Send message",
+    messagesLabel: "Brief and commands",
+    listening: "Listening…",
+    thinking: "Understanding…",
+    applying: "Applying…",
+    confirmHint: "Confirm to continue",
+    startMic: "Start voice input",
+    stopMic: "Stop listening",
+    micUnsupported: "Voice not supported in this browser",
+    cancel: "Cancel",
+    confirmDelete: "Confirm delete",
   },
 
   sidebarTask: {
@@ -113,7 +135,7 @@ export const uiCopy = {
   brief: {
     cardTitle: "Daily brief",
     cardDescription:
-      "A short summary of your open tasks. Turn on template-only for the same built-in layout every time.",
+      "Task summary on load — then use voice or chat below to manage todos or refresh.",
     templateOnly: "Template only",
     sourceAi: "Enhanced summary",
     sourceTemplate: "Template",
