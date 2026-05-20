@@ -1,4 +1,4 @@
-# Agentic Todo
+# Agentic Todo APP
 
 Next.js app for tasks, priorities, and a **daily brief**, backed by **Postgres** (Prisma), **GraphQL** at `/api/graphql`, and **Supabase Auth** (email + password).
 
