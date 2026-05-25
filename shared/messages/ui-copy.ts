@@ -62,10 +62,32 @@ export const uiCopy = {
     applying: "Applying…",
     confirmHint: "Confirm to continue",
     startMic: "Start voice input",
-    stopMic: "Stop listening",
+    stopMic: "Done speaking",
+    recording: "Listening…",
+    recordingLive: "Listening for your command",
+    cancelRecording: "Cancel recording",
+    stopRequest: "Stop",
+    retryVoice: "Try again",
     micUnsupported: "Voice not supported in this browser",
     cancel: "Cancel",
     confirmDelete: "Confirm delete",
+    requestFailed:
+      "Something went wrong on our side. Please try again in a moment.",
+    clarify: {
+      empty: "Say or type what you’d like to do with your tasks.",
+      unrecognized:
+        "I didn’t quite understand that. Try something like “add buy milk”, “mark design review complete”, or “refresh my brief”.",
+      taskNotFound:
+        "I couldn’t find that task. Try naming it more specifically, or check your task list.",
+      geminiUnavailable:
+        "Smart commands aren’t available right now. You can still try simple phrases like “add buy milk” or “refresh my brief”.",
+      thanks:
+        "You’re welcome! I’m here if you want to add a task or refresh your brief.",
+      greeting:
+        "Hi! Tell me what you’d like to do with your tasks.",
+      goodbye:
+        "Take care! Your tasks will be here when you need them.",
+    },
   },
 
   sidebarTask: {

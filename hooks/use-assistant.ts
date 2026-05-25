@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { AssistantIntent } from "@/modules/todo/assistant/intent.schema";
+import { uiCopy } from "@/shared/messages/ui-copy";
 import type {
   AssistantChatMessage,
   AssistantExecuteResponse,
@@ -10,6 +11,10 @@ import type {
 
 function newMessageId(): string {
   return `msg-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function isAbortError(e: unknown): boolean {
+  return e instanceof DOMException && e.name === "AbortError";
 }
 
 type Status = "idle" | "thinking" | "preview" | "applying";
@@ -40,6 +45,8 @@ export function useAssistant(options: {
     null,
   );
   const [pendingPreview, setPendingPreview] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const inFlightRef = useRef(false);
 
   const appendMessage = useCallback(
     (msg: Omit<AssistantChatMessage, "id">) => {
@@ -48,8 +55,30 @@ export function useAssistant(options: {
     [],
   );
 
+  const newAbortSignal = useCallback(() => {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    return controller.signal;
+  }, []);
+
+  const abortAssistant = useCallback(() => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    inFlightRef.current = false;
+    setPendingIntent(null);
+    setPendingPreview(null);
+    setStatus("idle");
+    setMessages((prev) => {
+      if (prev.length === 0) return prev;
+      const last = prev[prev.length - 1];
+      if (last.role === "user") return prev.slice(0, -1);
+      return prev;
+    });
+  }, []);
+
   const executeIntent = useCallback(
-    async (intent: AssistantIntent) => {
+    async (intent: AssistantIntent, signal: AbortSignal) => {
       setStatus("applying");
       setError(null);
 
@@ -58,6 +87,7 @@ export function useAssistant(options: {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "same-origin",
+          signal,
           body: JSON.stringify({
             phase: "execute",
             intent,
@@ -88,17 +118,19 @@ export function useAssistant(options: {
         appendMessage({
           role: "assistant",
           content: result.message,
-          // Brief-style summarize updates the pinned brief via refetch — avoid duplicate markdown in chat.
           summaryMarkdown: refreshBrief
             ? undefined
             : result.summaryMarkdown,
         });
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Something went wrong");
+        if (isAbortError(e)) return;
+        setError(uiCopy.assistant.requestFailed);
       } finally {
-        setPendingIntent(null);
-        setPendingPreview(null);
-        setStatus("idle");
+        if (!signal.aborted) {
+          setPendingIntent(null);
+          setPendingPreview(null);
+          setStatus("idle");
+        }
       }
     },
     [appendMessage, options.onTasksChanged, options.timeZone],
@@ -107,8 +139,10 @@ export function useAssistant(options: {
   const interpret = useCallback(
     async (transcript: string) => {
       const trimmed = transcript.trim();
-      if (!trimmed) return;
+      if (!trimmed || inFlightRef.current) return;
 
+      const signal = newAbortSignal();
+      inFlightRef.current = true;
       setError(null);
       appendMessage({ role: "user", content: trimmed });
       setStatus("thinking");
@@ -118,6 +152,7 @@ export function useAssistant(options: {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "same-origin",
+          signal,
           body: JSON.stringify({
             phase: "interpret",
             transcript: trimmed,
@@ -159,21 +194,25 @@ export function useAssistant(options: {
 
         setPendingIntent(null);
         setPendingPreview(null);
-        await executeIntent(parsed.intent);
+        await executeIntent(parsed.intent, signal);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Something went wrong");
+        if (isAbortError(e)) return;
+        setError(uiCopy.assistant.requestFailed);
         setStatus("idle");
         setPendingIntent(null);
         setPendingPreview(null);
+      } finally {
+        inFlightRef.current = false;
       }
     },
-    [appendMessage, executeIntent, options.timeZone],
+    [appendMessage, executeIntent, newAbortSignal, options.timeZone],
   );
 
   const confirmPending = useCallback(async () => {
     if (!pendingIntent) return;
-    await executeIntent(pendingIntent);
-  }, [executeIntent, pendingIntent]);
+    const signal = newAbortSignal();
+    await executeIntent(pendingIntent, signal);
+  }, [executeIntent, newAbortSignal, pendingIntent]);
 
   const cancelPending = useCallback(() => {
     setPendingIntent(null);
@@ -194,6 +233,7 @@ export function useAssistant(options: {
     interpret,
     confirmPending,
     cancelPending,
+    abortAssistant,
     setError,
   };
 }

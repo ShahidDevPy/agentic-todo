@@ -4,6 +4,100 @@ import {
   type AssistantTaskContextItem,
 } from "@/modules/todo/assistant/intent.schema";
 import { generateGeminiText } from "@/shared/lib/gemini";
+import { uiCopy } from "@/shared/messages/ui-copy";
+
+function isGeminiConfigured(): boolean {
+  return !!process.env.GEMINI_API_KEY?.trim();
+}
+
+const TASK_VERB_PATTERN =
+  /\b(add|create|delete|remove|update|mark|complete|toggle|remind|summarize|summary|brief|schedule|list tasks?)\b/i;
+
+const THANKS_PHRASES = [
+  "thanks",
+  "thank you",
+  "thank u",
+  "thx",
+  "ty",
+  "much appreciated",
+  "appreciate it",
+  "cheers",
+  "many thanks",
+  "thanks a lot",
+  "thanks so much",
+  "thank you so much",
+];
+
+const GREETING_PHRASES = [
+  "hi",
+  "hello",
+  "hey",
+  "good morning",
+  "good afternoon",
+  "good evening",
+  "howdy",
+  "greetings",
+];
+
+const GOODBYE_PHRASES = [
+  "bye",
+  "goodbye",
+  "good bye",
+  "see you",
+  "see ya",
+  "take care",
+  "later",
+  "catch you later",
+];
+
+function normalizeSocialPhrase(text: string): string {
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/[!.?,]+$/g, "")
+    .trim();
+}
+
+function containsTaskVerbs(text: string): boolean {
+  return TASK_VERB_PATTERN.test(text);
+}
+
+function matchesPhrase(normalized: string, phrases: string[]): boolean {
+  return phrases.some(
+    (p) => normalized === p || normalized.startsWith(`${p} `),
+  );
+}
+
+/** Gratitude, greetings, or sign-offs with no task request. */
+function detectSocialIntent(transcript: string): AssistantIntent | null {
+  const trimmed = transcript.trim();
+  if (!trimmed || containsTaskVerbs(trimmed)) return null;
+
+  const normalized = normalizeSocialPhrase(trimmed);
+
+  if (matchesPhrase(normalized, THANKS_PHRASES)) {
+    return {
+      action: "clarify",
+      message: uiCopy.assistant.clarify.thanks,
+    };
+  }
+
+  if (matchesPhrase(normalized, GREETING_PHRASES)) {
+    return {
+      action: "clarify",
+      message: uiCopy.assistant.clarify.greeting,
+    };
+  }
+
+  if (matchesPhrase(normalized, GOODBYE_PHRASES)) {
+    return {
+      action: "clarify",
+      message: uiCopy.assistant.clarify.goodbye,
+    };
+  }
+
+  return null;
+}
 
 function extractJsonObject(text: string): unknown {
   const trimmed = text.trim();
@@ -40,7 +134,7 @@ Actions:
 - toggle: { "action":"toggle", "taskId": string }
 - delete: { "action":"delete", "taskId": string }
 - summarize: { "action":"summarize", "style"?: "brief"|"list" }
-- clarify: { "action":"clarify", "message": string } — use when ambiguous or not a task command
+- clarify: { "action":"clarify", "message": string } — use when ambiguous, off-topic, or not a task command
 
 Rules:
 - Viewer timezone: ${timeZone}. Interpret "today", "tomorrow" relative to that zone as ISO datetimes.
@@ -49,6 +143,9 @@ Rules:
 - Prefer create when user asks to add/remind/schedule something.
 - Prefer summarize when user asks what's on their plate, summary, or daily brief.
 - Keep titles concise.
+- For gratitude (thanks, thank you), greetings (hi, hello), or goodbye with no task request, return clarify with a brief, warm message. Do not tell the user they mis-spoke or need different phrasing.
+- If the message is unclear, nonsense, or unrelated to tasks, return clarify with a short, friendly message and example phrasing.
+- Never mention API keys, configuration, environment variables, or internal systems in clarify messages.
 
 Open tasks:
 ${taskLines}
@@ -66,9 +163,12 @@ export async function interpretAssistantCommand(
   if (!trimmed) {
     return {
       action: "clarify",
-      message: "Say or type what you’d like to do with your tasks.",
+      message: uiCopy.assistant.clarify.empty,
     };
   }
+
+  const social = detectSocialIntent(trimmed);
+  if (social) return social;
 
   const raw = await generateGeminiText(
     buildPrompt(trimmed, tasks, timeZone),
@@ -103,18 +203,29 @@ function validateIntentAgainstTasks(
   ) {
     return {
       action: "clarify",
-      message:
-        "I couldn’t find that task. Try naming it more specifically or check your task list.",
+      message: uiCopy.assistant.clarify.taskNotFound,
     };
   }
   return intent;
 }
 
-/** Simple fallback when Gemini is unavailable. */
+function unrecognizedClarify(): AssistantIntent {
+  return {
+    action: "clarify",
+    message: isGeminiConfigured()
+      ? uiCopy.assistant.clarify.unrecognized
+      : uiCopy.assistant.clarify.geminiUnavailable,
+  };
+}
+
+/** Simple fallback when Gemini is unavailable or response could not be parsed. */
 function fallbackInterpret(
   transcript: string,
-  tasks: AssistantTaskContextItem[],
+  _tasks: AssistantTaskContextItem[],
 ): AssistantIntent {
+  const social = detectSocialIntent(transcript);
+  if (social) return social;
+
   const lower = transcript.toLowerCase();
   if (
     lower.includes("summary") ||
@@ -139,16 +250,6 @@ function fallbackInterpret(
       .trim();
     if (title) return { action: "create", title: title.slice(0, 500) };
   }
-  if (tasks.length === 0) {
-    return {
-      action: "clarify",
-      message:
-        "AI assistant needs GEMINI_API_KEY for full understanding. Try: “add buy milk” or configure Gemini.",
-    };
-  }
-  return {
-    action: "clarify",
-    message:
-      "I need Gemini configured to understand that command. Try simpler phrasing like “add …” or “summarize my tasks”.",
-  };
+
+  return unrecognizedClarify();
 }

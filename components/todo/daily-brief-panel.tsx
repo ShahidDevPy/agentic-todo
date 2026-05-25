@@ -1,11 +1,11 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { ClipboardList, Loader2, Send, Sparkles } from "lucide-react";
+import { ClipboardList, Loader2, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AssistantActionPreview } from "@/components/assistant/assistant-action-preview";
 import { AssistantMessage } from "@/components/assistant/assistant-message";
-import { AssistantMicButton } from "@/components/assistant/assistant-mic-button";
+import { AssistantInputBar } from "@/components/assistant/assistant-input-bar";
 import { AssistantStatusChip } from "@/components/assistant/assistant-status-chip";
 import { ErrorBanner } from "@/components/common/error-banner";
 import { WelcomeGreeting } from "@/components/todo/welcome-greeting";
@@ -17,7 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { useAssistant } from "@/hooks/use-assistant";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { DAILY_BRIEF_ASSISTANT_FEED_SCROLL_CLASS } from "@/lib/ui/workspace-panel";
@@ -139,21 +138,45 @@ export function DailyBriefPanel({
     interpret,
     confirmPending,
     cancelPending,
+    abortAssistant,
     setError,
   } = useAssistant({ timeZone, onTasksChanged: onAssistantTasksChanged });
 
-  const handleVoiceFinal = useCallback(
+  const handleVoiceTranscript = useCallback((text: string) => {
+    setDraft(text);
+  }, []);
+
+  const handleUtteranceComplete = useCallback(
     (text: string) => {
-      setDraft(text);
+      setDraft("");
       void interpret(text);
     },
     [interpret],
   );
 
-  const speech = useSpeechRecognition({ onFinal: handleVoiceFinal });
+  const speech = useSpeechRecognition({
+    continuous: false,
+    onTranscript: handleVoiceTranscript,
+    onUtteranceComplete: handleUtteranceComplete,
+  });
+
+  const handleRetryVoice = useCallback(() => {
+    abortAssistant();
+    setDraft("");
+    setError(null);
+    speech.cancel();
+    speech.start();
+  }, [abortAssistant, setError, speech]);
 
   const assistantBusy =
     assistantDisabled || status === "thinking" || status === "applying";
+
+  const showRetry =
+    !!error ||
+    (status === "idle" &&
+      !pendingPreview &&
+      messages.length > 0 &&
+      messages[messages.length - 1]?.role === "assistant");
 
   const zeroOpen = !loading && brief && brief.pendingCount === 0;
 
@@ -173,16 +196,12 @@ export function DailyBriefPanel({
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, status, brief?.summaryMarkdown, loading, briefRefetching]);
 
-  const handleSubmit = useCallback(
-    (e?: React.FormEvent) => {
-      e?.preventDefault();
-      const text = draft.trim();
-      if (!text || assistantBusy) return;
-      setDraft("");
-      void interpret(text);
-    },
-    [assistantBusy, draft, interpret],
-  );
+  const handleSubmit = useCallback(() => {
+    const text = draft.trim();
+    if (!text || assistantBusy || speech.listening) return;
+    setDraft("");
+    void interpret(text);
+  }, [assistantBusy, draft, interpret, speech.listening]);
 
   const briefSection = (() => {
     if (loading && !brief) {
@@ -397,41 +416,25 @@ export function DailyBriefPanel({
               />
             ) : null}
 
-            <form
-              className="flex shrink-0 items-end gap-2"
+            <AssistantInputBar
+              draft={draft}
+              onDraftChange={setDraft}
               onSubmit={handleSubmit}
-            >
-              <AssistantMicButton
-                listening={speech.listening}
-                supported={speech.supported}
-                disabled={assistantBusy}
-                onStart={speech.start}
-                onStop={speech.stop}
-              />
-              <Textarea
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                placeholder={uiCopy.assistant.inputPlaceholder}
-                rows={2}
-                disabled={assistantBusy}
-                className="min-h-[2.75rem] flex-1 resize-none text-sm"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit();
-                  }
-                }}
-              />
-              <Button
-                type="submit"
-                size="icon"
-                className="size-10 shrink-0 rounded-full"
-                disabled={assistantBusy || !draft.trim()}
-                aria-label={uiCopy.assistant.send}
-              >
-                <Send className="size-4" aria-hidden />
-              </Button>
-            </form>
+              assistantStatus={status}
+              disabled={assistantDisabled || status === "preview"}
+              showRetry={showRetry}
+              onAbort={abortAssistant}
+              onRetryVoice={handleRetryVoice}
+              speech={{
+                supported: speech.supported,
+                listening: speech.listening,
+                start: () => {
+                  setDraft("");
+                  speech.start();
+                },
+                cancel: speech.cancel,
+              }}
+            />
           </CardContent>
         </Card>
       </div>
