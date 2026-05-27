@@ -16,7 +16,11 @@ import {
   toggleTodoMutation,
   updateTodoMutation,
 } from "./todo.mutations";
-import { todoQuery, todosQuery } from "./todo.queries";
+import {
+  completedTodosCountQuery,
+  todoQuery,
+  todosQuery,
+} from "./todo.queries";
 
 export const todoGraphqlTypes = [
   TodoPriority,
@@ -25,6 +29,7 @@ export const todoGraphqlTypes = [
   Todo,
   DailyBrief,
   todosQuery,
+  completedTodosCountQuery,
   todoQuery,
   dailyBriefQuery,
   createTodoMutation,

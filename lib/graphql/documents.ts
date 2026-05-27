@@ -25,6 +25,12 @@ export const TODOS_QUERY = gql`
   }
 `;
 
+export const COMPLETED_TODOS_COUNT_QUERY = gql`
+  query CompletedTodosCount {
+    completedTodosCount
+  }
+`;
+
 export const DAILY_BRIEF_QUERY = gql`
   query DailyBrief($deterministicOnly: Boolean, $timeZone: String) {
     dailyBrief(deterministicOnly: $deterministicOnly, timeZone: $timeZone) {

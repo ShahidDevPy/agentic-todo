@@ -73,6 +73,18 @@ export const todosQuery = queryField("todos", {
   },
 });
 
+
+export const completedTodosCountQuery = queryField("completedTodosCount", {
+  type: nonNull("Int"),
+  description: "Number of completed todos for the signed-in user.",
+  resolve: async (_parent, _args, ctx) => {
+    const userId = requireUserId(ctx);
+    return ctx.prisma.todo.count({
+      where: { userId, isCompleted: true },
+    });
+  },
+});
+
 export const todoQuery = queryField("todo", {
   type: "Todo",
   args: {

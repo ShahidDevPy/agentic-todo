@@ -1,6 +1,6 @@
 "use client";
 
-import { MockUserBadge } from "@/components/common/mock-user-badge";
+import { UserProfileBadge } from "@/components/common/user-profile-badge";
 import { uiCopy } from "@/shared/messages/ui-copy";
 
 function greetingForHour(d: Date): string {
@@ -29,7 +29,7 @@ export function WelcomeGreeting({
       className={`border-primary/20 from-card rounded-2xl border bg-gradient-to-br to-primary/5 p-4 shadow-md ring-1 ring-black/[0.04] dark:ring-white/[0.06] ${className ?? ""}`}
     >
       <div className="flex min-w-0 flex-col items-stretch gap-3 sm:flex-row sm:items-start">
-        <MockUserBadge
+        <UserProfileBadge
           variant="greeting"
           className="p-0 sm:shrink-0"
           avatarUrl={avatarUrl}

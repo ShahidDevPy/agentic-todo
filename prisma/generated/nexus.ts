@@ -69,6 +69,7 @@ export interface NexusGenFieldTypes {
     updateTodo: NexusGenRootTypes['Todo']; // Todo!
   }
   Query: { // field return type
+    completedTodosCount: number; // Int!
     dailyBrief: NexusGenRootTypes['DailyBrief']; // DailyBrief!
     todo: NexusGenRootTypes['Todo'] | null; // Todo
     todos: NexusGenRootTypes['Todo'][]; // [Todo!]!
@@ -105,6 +106,7 @@ export interface NexusGenFieldTypeNames {
     updateTodo: 'Todo'
   }
   Query: { // field return type name
+    completedTodosCount: 'Int'
     dailyBrief: 'DailyBrief'
     todo: 'Todo'
     todos: 'Todo'

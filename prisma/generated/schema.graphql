@@ -32,6 +32,9 @@ type Mutation {
 }
 
 type Query {
+  """Number of completed todos for the signed-in user."""
+  completedTodosCount: Int!
+
   """
   Daily task summary as Markdown for the signed-in user; may use optional server-side enhancement when available, otherwise the built-in template.
   """

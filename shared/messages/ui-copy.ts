@@ -187,8 +187,13 @@ export const uiCopy = {
       `"${title.slice(0, 80)}${title.length > 80 ? "…" : ""}" will be removed permanently.`,
     deleteConfirm: "Delete",
     clearCompletedTitle: "Clear all completed tasks?",
-    clearCompletedDescription:
-      "This removes every completed task for this profile. This cannot be undone.",
+    clearCompletedDescription(count: number) {
+      if (count <= 0) {
+        return "There are no completed tasks to remove.";
+      }
+      const noun = count === 1 ? "task" : "tasks";
+      return `This will permanently delete ${count} completed ${noun}. This cannot be undone.`;
+    },
     clearConfirm: "Clear all",
     cancel: "Cancel",
   },

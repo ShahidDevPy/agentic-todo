@@ -57,3 +57,29 @@ Restart the dev server after changing env files.
 - [Next.js documentation](https://nextjs.org/docs)
 - [Prisma documentation](https://www.prisma.io/docs)
 - [Supabase Auth (Next.js)](https://supabase.com/docs/guides/auth/server-side/nextjs)
+
+## Code conventions
+
+| Area | Convention | Examples |
+|------|------------|----------|
+| React components | `kebab-case.tsx`, named exports | `task-create-dialog.tsx`, `daily-brief-panel.tsx` |
+| Hooks | `use-*.ts` | `use-assistant.ts`, `use-app-mutation.ts` |
+| Domain / server | `modules/todo/` | `graphql/todo.mutations.ts`, `assistant/interpret-command.ts` |
+| User-facing copy | `shared/messages/*-copy.ts` | `ui-copy.ts` (labels), `error-copy.ts` (errors), `status-copy.ts` (success) |
+| Client GraphQL | `lib/graphql/documents.ts` | Apollo operations (queries/mutations) |
+| Data layer naming | Prisma/GraphQL use `Todo`; UI copy may say “task” | `Todo` type, “My tasks” nav label |
+
+### Folder layout
+
+- `app/` — routes, API handlers, auth callback
+- `components/` — React UI (`todo/`, `assistant/`, `common/`, `ui/`)
+- `hooks/` — client hooks
+- `lib/` — client infrastructure (Apollo, Supabase, formatters)
+- `modules/todo/` — server domain (GraphQL, agents, assistant)
+- `shared/` — isomorphic helpers and messages
+- `types/` — shared TypeScript types for the client
+- `generated/` / `prisma/generated/` — generated artifacts (do not hand-edit)
+
+### Profile chip
+
+The signed-in user chip is `UserProfileBadge` (`components/common/user-profile-badge.tsx`), not a mock user.

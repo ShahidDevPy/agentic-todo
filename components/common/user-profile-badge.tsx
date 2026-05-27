@@ -11,7 +11,7 @@ type Props = {
    */
   variant?: "sidebar" | "inline" | "compact" | "greeting";
   className?: string;
-  /** When set, replaces the default “You” / mock label (all variants). */
+  /** When set, replaces the default “You” / profile label (all variants). */
   profileTitle?: string | null;
   /** Inline / sidebar: second line. Compact: optional muted line under the title. */
   profileSubtitle?: string | null;
@@ -19,7 +19,7 @@ type Props = {
   avatarUrl?: string | null;
 };
 
-export function MockUserBadge({
+export function UserProfileBadge({
   variant = "sidebar",
   className,
   profileTitle,

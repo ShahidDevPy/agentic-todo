@@ -1,23 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "./providers";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Agentic Todo",
   description:
     "AI-assisted task management with GraphQL, Prisma, and a daily brief.",
 };
+
+const fontVars = {
+  "--font-geist-sans":
+    "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif",
+  "--font-geist-mono":
+    "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace",
+} as React.CSSProperties;
 
 export default function RootLayout({
   children,
@@ -27,7 +23,8 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      style={fontVars}
+      className="h-full antialiased"
     >
       <body className="min-h-full flex flex-col font-sans">
         <Providers>{children}</Providers>

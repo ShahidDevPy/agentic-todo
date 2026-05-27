@@ -1,30 +1,19 @@
 "use client";
 
 import { NetworkStatus } from "@apollo/client";
-import { useMutation, useQuery } from "@apollo/client/react";
-import { ChevronLeft, Plus } from "lucide-react";
+import { useQuery } from "@apollo/client/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { MockUserBadge } from "@/components/common/mock-user-badge";
-import { ErrorBanner } from "@/components/common/error-banner";
 import { DestructiveConfirmDialog } from "@/components/common/destructive-confirm-dialog";
 import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { DailyBriefPanel } from "@/components/todo/daily-brief-panel";
-import { TaskListControlsStrip } from "@/components/todo/task-list-controls-strip";
 import {
   TaskCreateDialog,
   type CreateTaskPayload,
 } from "@/components/todo/task-create-dialog";
 import { TaskSidebar } from "@/components/todo/task-sidebar";
-import { TodoDetailPanel } from "@/components/todo/todo-detail-panel";
-import { TodoList } from "@/components/todo/todo-list";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useAppMutation } from "@/hooks/use-app-mutation";
 import { useAuth } from "@/hooks/use-auth";
 import {
   getGreetingName,
@@ -38,8 +27,12 @@ import {
   type TaskListSegment,
 } from "@/lib/todo-list-segment";
 import { cn } from "@/lib/utils";
+import { MobileTodoDetailDialog } from "@/components/todo/mobile-todo-detail-dialog";
+import { TodoStatusStack } from "@/components/todo/todo-status-stack";
+import { TodoTasksView } from "@/components/todo/todo-tasks-view";
 import {
   CLEAR_COMPLETED,
+  COMPLETED_TODOS_COUNT_QUERY,
   CREATE_TODO,
   DAILY_BRIEF_QUERY,
   DELETE_TODO,
@@ -49,8 +42,9 @@ import {
   UPDATE_TODO,
 } from "@/lib/graphql/documents";
 import { parseUserFacingError } from "@/lib/parse-user-facing-error";
-import { mobileSheetDialogContentClassName } from "@/lib/ui/mobile-sheet-dialog";
 import { workspacePanelShellClassName } from "@/lib/ui/workspace-panel";
+import { statusCopy } from "@/shared/messages/status-copy";
+import { Plus } from "lucide-react";
 import { uiCopy } from "@/shared/messages/ui-copy";
 import {
   narrowDailyBrief,
@@ -61,6 +55,7 @@ import {
 } from "@/types/todo-view";
 
 type MainNav = "tasks" | "assistant";
+type StatusTone = "success" | "danger" | "neutral";
 
 export function TodoApp() {
   const { user, loading: authLoading, configured, signOut } = useAuth();
@@ -80,19 +75,17 @@ export function TodoApp() {
   const [listSegment, setListSegment] = useState<TaskListSegment>("all");
 
   const [actionError, setActionError] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [statusTone, setStatusTone] = useState<StatusTone>("success");
   const [suppressQueryBanner, setSuppressQueryBanner] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<TodoGql | null>(null);
-  const [clearDialogOpen, setClearDialogOpen] = useState(false);
+  const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
 
   /** IANA zone for daily brief bucketing (client clock). */
   const viewerTimeZone = useMemo(
     () => Intl.DateTimeFormat().resolvedOptions().timeZone,
     [],
   );
-
-  const onGraphqlMutationError = useCallback((err: unknown) => {
-    setActionError(parseUserFacingError(err));
-  }, []);
 
   const listFilter = completedOnly ? ("COMPLETED" as const) : ("ACTIVE" as const);
 
@@ -106,6 +99,17 @@ export function TodoApp() {
     },
     skip: !userId,
   });
+
+  const { data: completedCountData, refetch: refetchCompletedCount } =
+    useQuery<{ completedTodosCount: number }>(COMPLETED_TODOS_COUNT_QUERY, {
+      skip: !userId,
+    });
+
+  const completedCount = completedCountData?.completedTodosCount ?? 0;
+
+  const refetchTasks = useCallback(async () => {
+    await Promise.all([refetch(), refetchCompletedCount()]);
+  }, [refetch, refetchCompletedCount]);
 
   const {
     data: briefData,
@@ -128,6 +132,17 @@ export function TodoApp() {
     setSuppressQueryBanner(false);
   }, [error, briefError]);
 
+  useEffect(() => {
+    setStatusMessage(null);
+    setStatusTone("success");
+  }, [mainNav]);
+
+  useEffect(() => {
+    if (!statusMessage) return;
+    const id = window.setTimeout(() => setStatusMessage(null), 2400);
+    return () => window.clearTimeout(id);
+  }, [statusMessage]);
+
   const queryBanner =
     !suppressQueryBanner && (error ?? briefError)
       ? parseUserFacingError(error ?? briefError)
@@ -137,6 +152,8 @@ export function TodoApp() {
 
   const dismissBanner = useCallback(() => {
     setActionError(null);
+    setStatusMessage(null);
+    setStatusTone("success");
     if (error ?? briefError) setSuppressQueryBanner(true);
   }, [error, briefError]);
 
@@ -187,49 +204,67 @@ export function TodoApp() {
     return todos.findIndex((t) => t.id === selectedTodo.id);
   }, [selectedTodo, todos]);
 
-  const [createTodo, { loading: creating }] = useMutation(CREATE_TODO, {
-    onCompleted: () => {
-      setCreateOpen(false);
-      void refetch();
-      setActionError(null);
+  const setStatusWithTone = useCallback(
+    (message: string | null, tone: StatusTone = "success") => {
+      setStatusTone(tone);
+      setStatusMessage(message);
     },
-    onError: onGraphqlMutationError,
-  });
-
-  const [toggleTodo] = useMutation(TOGGLE_TODO, {
-    onCompleted: () => void refetch(),
-    onError: onGraphqlMutationError,
-  });
-
-  const [updateTodo] = useMutation(UPDATE_TODO, {
-    onCompleted: () => void refetch(),
-    onError: onGraphqlMutationError,
-  });
-
-  const [deleteTodo, { loading: deletingTodo }] = useMutation(DELETE_TODO, {
-    onCompleted: () => {
-      void refetch();
-      setDeleteTarget(null);
-      setActionError(null);
-    },
-    onError: onGraphqlMutationError,
-  });
-
-  const [clearCompleted, { loading: clearing }] = useMutation(
-    CLEAR_COMPLETED,
-    {
-      onCompleted: () => {
-        void refetch();
-        setClearDialogOpen(false);
-        setActionError(null);
-      },
-      onError: onGraphqlMutationError,
-    },
+    [],
   );
 
-  const [reorderTodos] = useMutation(REORDER_TODOS, {
-    onCompleted: () => void refetch(),
-    onError: onGraphqlMutationError,
+  const mutationOpts = useMemo(
+    () => ({
+      setError: setActionError,
+      setStatus: setStatusWithTone,
+      refetch: refetchTasks,
+    }),
+    [refetchTasks, setStatusWithTone],
+  );
+
+  const [createTodo, { loading: creating }] = useAppMutation<
+    { createTodo: { title: string } },
+    Record<string, unknown>
+  >(CREATE_TODO, {
+    ...mutationOpts,
+    onSuccessStatus: (data) => ({ message: statusCopy.taskCreated(data.createTodo.title), tone: "success" }),
+    onCompleted: () => setCreateOpen(false),
+  });
+
+  const [toggleTodo] = useAppMutation(TOGGLE_TODO, {
+    ...mutationOpts,
+    onSuccessStatus: () => ({ message: statusCopy.taskToggled, tone: "neutral" }),
+  });
+
+  const [updateTodo] = useAppMutation(UPDATE_TODO, {
+    ...mutationOpts,
+    onSuccessStatus: () => ({ message: statusCopy.taskUpdated, tone: "neutral" }),
+  });
+
+  const [deleteTodo, { loading: deletingTodo }] = useAppMutation<
+    { deleteTodo: boolean },
+    { id: string }
+  >(DELETE_TODO, {
+    ...mutationOpts,
+    onSuccessStatus: () => ({ message: statusCopy.taskDeleted, tone: "danger" }),
+    onCompleted: () => setDeleteTarget(null),
+  });
+
+  const [clearCompleted, { loading: clearing }] = useAppMutation<{
+    clearCompletedTodos: number;
+  }>(CLEAR_COMPLETED, {
+    ...mutationOpts,
+    refetchQueries: ["Todos", "CompletedTodosCount"],
+    awaitRefetchQueries: true,
+    onSuccessStatus: (data) => ({
+      message: statusCopy.clearedCompleted(data.clearCompletedTodos),
+      tone: data.clearCompletedTodos > 0 ? "danger" : "neutral",
+    }),
+    onCompleted: () => setClearConfirmOpen(false),
+  });
+
+  const [reorderTodos] = useAppMutation(REORDER_TODOS, {
+    ...mutationOpts,
+    onSuccessStatus: () => ({ message: statusCopy.orderSaved, tone: "success" }),
   });
 
   const handleCreateTaskSubmit = useCallback(
@@ -312,8 +347,8 @@ export function TodoApp() {
 
   const handleConfirmClear = useCallback(async () => {
     if (!userId) return;
-    await clearCompleted();
-  }, [clearCompleted]);
+    await clearCompleted({});
+  }, [clearCompleted, userId]);
 
   const reorderEnabled = listOrder === "MANUAL";
 
@@ -390,9 +425,10 @@ export function TodoApp() {
           mainNav === "assistant" ? "max-lg:min-h-0 max-lg:overflow-y-auto" : "min-h-0",
         )}
       >
-        <ErrorBanner
-          className="shrink-0 px-3 pt-3 sm:px-6 sm:pt-4"
-          message={bannerMessage}
+        <TodoStatusStack
+          errorMessage={bannerMessage}
+          statusMessage={statusMessage}
+          statusTone={statusTone}
           onDismiss={dismissBanner}
         />
 
@@ -410,88 +446,41 @@ export function TodoApp() {
               mainNav === "tasks" && "min-h-0",
             )}
           >
-            <section
-              aria-hidden={mainNav !== "tasks"}
-              className={cn(
-                "transition-opacity duration-200 ease-out motion-reduce:transition-none",
-                mainNav === "tasks"
-                  ? "relative z-10 flex min-h-0 flex-1 flex-col opacity-100"
-                  : "pointer-events-none absolute inset-0 z-0 overflow-hidden opacity-0",
-              )}
-            >
-              <div className={workspacePanelShellClassName()}>
-                <div className="border-border/45 flex shrink-0 flex-col gap-1.5 border-b px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:px-5 sm:py-3">
-                  <div className="min-w-0">
-                    <h2 className="text-base font-semibold tracking-tight sm:text-lg md:text-xl">
-                      {uiCopy.list.heading}
-                    </h2>
-                    {uiCopy.list.headingHint ? (
-                      <p className="text-muted-foreground mt-0.5 max-w-prose text-xs">
-                        {uiCopy.list.headingHint}
-                      </p>
-                    ) : null}
-                  </div>
-                  <MockUserBadge
-                    variant="compact"
-                    className="shrink-0 max-w-[min(100%,12rem)] sm:max-w-xs"
-                    profileTitle={greetingName}
-                    avatarUrl={greetingAvatarUrl}
-                  />
-                </div>
-
-                <div className="grid min-h-0 flex-1 overflow-hidden lg:grid-cols-[minmax(220px,30%)_minmax(0,1fr)]">
-                  <div className="border-border/40 flex min-h-0 min-w-0 flex-col lg:border-r">
-                    <TaskListControlsStrip
-                      listSegment={listSegment}
-                      onListSegmentChange={handleListSegmentChange}
-                      upcomingCount={upcomingCount}
-                      listOrder={listOrder}
-                      onListOrderChange={setListOrder}
-                      completedOnly={completedOnly}
-                      onCompletedOnlyChange={setCompletedOnly}
-                      starredOnly={starredOnly}
-                      onStarredOnlyChange={setStarredOnly}
-                      onClearRequest={() => setClearDialogOpen(true)}
-                      clearing={clearing}
-                      canClear={!!userId}
-                    />
-                    <div className="min-h-0 flex-1 overflow-y-auto px-1.5 py-2 sm:px-3 sm:py-3">
-                      <TodoList
-                        todos={displayTodos}
-                        loading={loading}
-                        emptyLabel={listEmptyLabel}
-                        groupByDue={listSegment === "all"}
-                        selectedTodoId={selectedTodoId}
-                        onSelectTodo={handleSelectTodo}
-                        onToggle={onToggle}
-                        onUpdatePriority={onUpdatePriority}
-                      />
-                    </div>
-                  </div>
-                  <div className="bg-muted/10 hidden min-h-0 flex-col lg:flex">
-                    <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-6">
-                      <TodoDetailPanel
-                        key={selectedTodo?.id ?? "__none__"}
-                        className="border-0 shadow-none ring-0"
-                        todo={selectedTodo}
-                        index={selectedIndex >= 0 ? selectedIndex : 0}
-                        isFirst={selectedIndex === 0}
-                        isLast={
-                          selectedIndex >= 0 &&
-                          selectedIndex === todos.length - 1
-                        }
-                        reorderEnabled={reorderEnabled}
-                        onToggle={onToggle}
-                        onStar={onStar}
-                        onDeleteRequest={setDeleteTarget}
-                        onMove={move}
-                        onUpdate={onUpdateTask}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
+            <TodoTasksView
+              mainNav={mainNav}
+              greetingName={greetingName}
+              greetingAvatarUrl={greetingAvatarUrl}
+              listSegment={listSegment}
+              onListSegmentChange={handleListSegmentChange}
+              upcomingCount={upcomingCount}
+              listOrder={listOrder}
+              onListOrderChange={setListOrder}
+              completedOnly={completedOnly}
+              onCompletedOnlyChange={setCompletedOnly}
+              starredOnly={starredOnly}
+              onStarredOnlyChange={setStarredOnly}
+              onClearRequest={() => {
+                void refetchCompletedCount();
+                setClearConfirmOpen(true);
+              }}
+              clearing={clearing}
+              canClear={!!userId}
+              displayTodos={displayTodos}
+              loading={loading}
+              listEmptyLabel={listEmptyLabel}
+              selectedTodoId={selectedTodoId}
+              onSelectTodo={handleSelectTodo}
+              onToggle={onToggle}
+              onUpdatePriority={onUpdatePriority}
+              selectedTodo={selectedTodo}
+              selectedIndex={selectedIndex}
+              todosLength={todos.length}
+              reorderEnabled={reorderEnabled}
+              onStar={onStar}
+              onDeleteRequest={setDeleteTarget}
+              onMove={move}
+              onUpdate={onUpdateTask}
+            />
             <section
               aria-hidden={mainNav !== "assistant"}
               className={cn(
@@ -537,54 +526,21 @@ export function TodoApp() {
         <Plus className="size-5 sm:size-6" aria-hidden />
       </Button>
 
-      <Dialog
+      <MobileTodoDetailDialog
         open={showMobileDetail}
         onOpenChange={(open) => {
           if (!open) setSelectedTodoId(null);
         }}
-      >
-        <DialogContent
-          showCloseButton
-          className={cn(
-            "flex max-h-[min(92dvh,100dvh)] w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-lg",
-            mobileSheetDialogContentClassName(),
-            "sm:left-[50%] sm:top-[50%] sm:max-h-[90vh] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:rounded-lg sm:p-0",
-          )}
-        >
-          <DialogHeader className="border-border flex shrink-0 flex-row items-center gap-2 border-b px-3 py-2.5 sm:px-4 sm:py-3">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="size-9 shrink-0"
-              aria-label={uiCopy.detailMobile.back}
-              onClick={() => setSelectedTodoId(null)}
-            >
-              <ChevronLeft className="size-5" />
-            </Button>
-            <DialogTitle className="text-sm font-semibold sm:text-base">
-              {uiCopy.detailMobile.sheetTitle}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto p-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-4 sm:pb-6">
-            <TodoDetailPanel
-              key={selectedTodo?.id ?? "__none__"}
-              todo={selectedTodo}
-              index={selectedIndex >= 0 ? selectedIndex : 0}
-              isFirst={selectedIndex === 0}
-              isLast={
-                selectedIndex >= 0 && selectedIndex === todos.length - 1
-              }
-              reorderEnabled={reorderEnabled}
-              onToggle={onToggle}
-              onStar={onStar}
-              onDeleteRequest={setDeleteTarget}
-              onMove={move}
-              onUpdate={onUpdateTask}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+        selectedTodo={selectedTodo}
+        selectedIndex={selectedIndex}
+        todosLength={todos.length}
+        reorderEnabled={reorderEnabled}
+        onToggle={onToggle}
+        onStar={onStar}
+        onDeleteRequest={setDeleteTarget}
+        onMove={move}
+        onUpdate={onUpdateTask}
+      />
 
       <TaskCreateDialog
         key={createOpen ? "task-create-open" : "task-create-closed"}
@@ -610,15 +566,18 @@ export function TodoApp() {
       />
 
       <DestructiveConfirmDialog
-        open={clearDialogOpen}
-        onOpenChange={setClearDialogOpen}
+        open={clearConfirmOpen}
+        onOpenChange={setClearConfirmOpen}
         title={uiCopy.confirmations.clearCompletedTitle}
-        description={uiCopy.confirmations.clearCompletedDescription}
+        description={uiCopy.confirmations.clearCompletedDescription(
+          completedCount,
+        )}
         confirmLabel={uiCopy.confirmations.clearConfirm}
         cancelLabel={uiCopy.confirmations.cancel}
         loading={clearing}
         onConfirm={handleConfirmClear}
       />
+
     </div>
   );
 }
