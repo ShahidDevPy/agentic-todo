@@ -22,7 +22,11 @@ Copy [`.env.example`](.env.example) to `.env.local` in the project root.
 | `GEMINI_MODEL` | No | Model id when using the optional brief enhancement (see `.env.example`). |
 | `GEMINI_BRIEF_CACHE_SECONDS` | No | Brief response cache TTL in seconds (default in code: 300). |
 
-In the **Supabase dashboard**: Authentication → **URL configuration** — set **Site URL** to `http://localhost:3000` (and your production URL when deployed). Add **Redirect URLs** including `http://localhost:3000/auth/callback` so email confirmation / magic links work if you use them.
+In the **Supabase dashboard**: Authentication → **URL configuration** — set **Site URL** to `http://localhost:3000` (and your production URL when deployed). Add **Redirect URLs** including:
+
+- `http://localhost:3000/auth/callback` (email confirmation, Google OAuth)
+- `http://localhost:3000/auth/reset-password` (password reset email link)
+- Production equivalents when deployed
 
 Restart the dev server after changing env files.
 
@@ -30,6 +34,15 @@ Restart the dev server after changing env files.
 
 - `proxy.ts` refreshes the Supabase session and sends unauthenticated visitors to `/login` (except `/login`, `/auth/*`, and `/api/*`).
 - GraphQL resolvers use the **signed-in user’s id** from the session (`ctx.userId`). The client no longer passes `userId` on queries or mutations, so users only read and write **their own** todos.
+
+### Password reset
+
+| Route | Purpose |
+|-------|---------|
+| `/login/forgot-password` | Request a reset email |
+| `/auth/reset-password` | Set a new password after clicking the email link |
+
+Add **`http://localhost:3000/auth/reset-password`** to Supabase **Redirect URLs** (plus production URL). Use **Forgot password?** on the sign-in form.
 
 ## Scripts
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import {
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
+import { authCopy } from "@/shared/messages/auth-copy";
 
 type Mode = "signIn" | "signUp";
 
@@ -296,12 +298,22 @@ export function LoginForm() {
             />
           </div>
           <div className="space-y-2">
-            <label
-              htmlFor="password"
-              className="text-sm font-medium leading-none"
-            >
-              Password
-            </label>
+            <div className="flex items-center justify-between gap-2">
+              <label
+                htmlFor="password"
+                className="text-sm font-medium leading-none"
+              >
+                Password
+              </label>
+              {mode === "signIn" ? (
+                <Link
+                  href={`/login/forgot-password?next=${encodeURIComponent(next.startsWith("/") ? next : "/")}`}
+                  className="text-muted-foreground hover:text-foreground text-xs underline-offset-4 hover:underline"
+                >
+                  {authCopy.login.forgotPassword}
+                </Link>
+              ) : null}
+            </div>
             <Input
               id="password"
               type="password"
