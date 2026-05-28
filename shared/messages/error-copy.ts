@@ -3,8 +3,7 @@
  * Resolver messages may leak implementation details — prefer codes from the server.
  */
 export const errorCopy = {
-  generic:
-    "Something went wrong. Check your connection and try again.",
+  generic: "Something went wrong. Check your connection and try again.",
 
   notFound: "That item no longer exists or you do not have access.",
 
@@ -12,8 +11,7 @@ export const errorCopy = {
 
   server: "Our servers had a problem. Please try again in a moment.",
 
-  offline:
-    "Could not reach the server. Check your network or VPN connection.",
+  offline: "Could not reach the server. Check your network or VPN connection.",
 
   /** Fallback when we only have a technical Error#message */
   unexpected: "An unexpected error occurred.",
@@ -29,9 +27,7 @@ export type GraphqlErrorCode =
 
 /** Maps known resolver extension codes → user copy. */
 export const graphqlCodeMessage: Partial<
-  Record<GraphqlErrorCode | string,
-    string
-  >
+  Record<GraphqlErrorCode | string, string>
 > = {
   NOT_FOUND: errorCopy.notFound,
   BAD_USER_INPUT: errorCopy.badInput,

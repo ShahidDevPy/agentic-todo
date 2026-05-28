@@ -17,8 +17,7 @@ async function main() {
   const { generateGeminiText } = await import("../shared/lib/gemini");
 
   const key = process.env.GEMINI_API_KEY?.trim();
-  const model =
-    process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash-lite";
+  const model = process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash-lite";
 
   console.log("--- Gemini API smoke test ---");
   console.log(
@@ -40,7 +39,9 @@ async function main() {
       'Reply with exactly one word: "pong"',
     );
     if (!text?.trim()) {
-      console.error("Empty response. In dev, check server/gemini logs for raw API body.");
+      console.error(
+        "Empty response. In dev, check server/gemini logs for raw API body.",
+      );
       process.exit(1);
     }
     console.log("Success. Model replied:");
@@ -52,7 +53,9 @@ async function main() {
     console.error("Request failed:");
     console.error(e);
     console.log("\nCommon fixes:");
-    console.log("- Key from https://aistudio.google.com/apikey (Google AI Studio).");
+    console.log(
+      "- Key from https://aistudio.google.com/apikey (Google AI Studio).",
+    );
     console.log("- Try GEMINI_MODEL=gemini-2.0-flash or gemini-2.5-flash-lite");
     console.log("- Restart `npm run dev` after editing .env.local.");
     process.exit(1);

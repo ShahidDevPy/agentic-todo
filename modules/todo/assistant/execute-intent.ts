@@ -71,7 +71,7 @@ export async function executeAssistantIntent(
     }
 
     case "update": {
-      const existing = await assertTodoOwned(prisma, userId, intent.taskId);
+      await assertTodoOwned(prisma, userId, intent.taskId);
       const data: Prisma.TodoUpdateInput = {};
 
       if (intent.title != null) {

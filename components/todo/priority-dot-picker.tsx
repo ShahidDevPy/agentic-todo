@@ -80,7 +80,9 @@ export function PriorityDotPicker({
             <span
               className={cn(
                 "block rounded-full ring-offset-background",
-                compact ? "size-2.5 ring-1 ring-offset-1" : "size-3.5 ring-2 ring-offset-2",
+                compact
+                  ? "size-2.5 ring-1 ring-offset-1"
+                  : "size-3.5 ring-2 ring-offset-2",
                 selected ? cn(active, ring) : cn(idle, "ring-transparent"),
               )}
             />

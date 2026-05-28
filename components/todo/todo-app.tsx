@@ -15,10 +15,7 @@ import { TaskSidebar } from "@/components/todo/task-sidebar";
 import { Button } from "@/components/ui/button";
 import { useAppMutation } from "@/hooks/use-app-mutation";
 import { useAuth } from "@/hooks/use-auth";
-import {
-  getGreetingName,
-  getProfileAvatarUrl,
-} from "@/lib/auth/profile-meta";
+import { getGreetingName, getProfileAvatarUrl } from "@/lib/auth/profile-meta";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import { useTodoListOrder } from "@/hooks/use-todo-list-order";
 import { dueGroupForTodo } from "@/lib/todo-due-groups";
@@ -84,7 +81,9 @@ export function TodoApp() {
     [],
   );
 
-  const listFilter = completedOnly ? ("COMPLETED" as const) : ("ACTIVE" as const);
+  const listFilter = completedOnly
+    ? ("COMPLETED" as const)
+    : ("ACTIVE" as const);
 
   const { data, loading, error, refetch } = useQuery<{
     todos: TodoGql[];
@@ -170,10 +169,7 @@ export function TodoApp() {
     ? uiCopy.list.emptyCompleted
     : uiCopy.list.empty;
 
-  const brief = useMemo(
-    () => narrowDailyBrief(briefData),
-    [briefData],
-  );
+  const brief = useMemo(() => narrowDailyBrief(briefData), [briefData]);
 
   useEffect(() => {
     if (mainNav !== "tasks") {
@@ -223,18 +219,27 @@ export function TodoApp() {
     Record<string, unknown>
   >(CREATE_TODO, {
     ...mutationOpts,
-    onSuccessStatus: (data) => ({ message: statusCopy.taskCreated(data.createTodo.title), tone: "success" }),
+    onSuccessStatus: (data) => ({
+      message: statusCopy.taskCreated(data.createTodo.title),
+      tone: "success",
+    }),
     onCompleted: () => setCreateOpen(false),
   });
 
   const [toggleTodo] = useAppMutation(TOGGLE_TODO, {
     ...mutationOpts,
-    onSuccessStatus: () => ({ message: statusCopy.taskToggled, tone: "neutral" }),
+    onSuccessStatus: () => ({
+      message: statusCopy.taskToggled,
+      tone: "neutral",
+    }),
   });
 
   const [updateTodo] = useAppMutation(UPDATE_TODO, {
     ...mutationOpts,
-    onSuccessStatus: () => ({ message: statusCopy.taskUpdated, tone: "neutral" }),
+    onSuccessStatus: () => ({
+      message: statusCopy.taskUpdated,
+      tone: "neutral",
+    }),
   });
 
   const [deleteTodo, { loading: deletingTodo }] = useAppMutation<
@@ -242,7 +247,10 @@ export function TodoApp() {
     { id: string }
   >(DELETE_TODO, {
     ...mutationOpts,
-    onSuccessStatus: () => ({ message: statusCopy.taskDeleted, tone: "danger" }),
+    onSuccessStatus: () => ({
+      message: statusCopy.taskDeleted,
+      tone: "danger",
+    }),
     onCompleted: () => setDeleteTarget(null),
   });
 
@@ -261,7 +269,10 @@ export function TodoApp() {
 
   const [reorderTodos] = useAppMutation(REORDER_TODOS, {
     ...mutationOpts,
-    onSuccessStatus: () => ({ message: statusCopy.orderSaved, tone: "success" }),
+    onSuccessStatus: () => ({
+      message: statusCopy.orderSaved,
+      tone: "success",
+    }),
   });
 
   const handleCreateTaskSubmit = useCallback(
@@ -354,10 +365,7 @@ export function TodoApp() {
     [user],
   );
 
-  const greetingAvatarUrl = useMemo(
-    () => getProfileAvatarUrl(user),
-    [user],
-  );
+  const greetingAvatarUrl = useMemo(() => getProfileAvatarUrl(user), [user]);
 
   const handleSelectTodo = useCallback((id: string) => {
     setSelectedTodoId(id);
@@ -405,8 +413,7 @@ export function TodoApp() {
     );
   }
 
-  const showMobileDetail =
-    isMobile && mainNav === "tasks" && !!selectedTodo;
+  const showMobileDetail = isMobile && mainNav === "tasks" && !!selectedTodo;
 
   return (
     <div className="from-background to-muted/30 flex min-h-[100dvh] flex-col bg-gradient-to-b lg:flex-row">
@@ -419,7 +426,9 @@ export function TodoApp() {
       <div
         className={cn(
           "flex min-w-0 flex-1 flex-col",
-          mainNav === "assistant" ? "max-lg:min-h-0 max-lg:overflow-y-auto" : "min-h-0",
+          mainNav === "assistant"
+            ? "max-lg:min-h-0 max-lg:overflow-y-auto"
+            : "min-h-0",
         )}
       >
         <TodoStatusStack
@@ -487,7 +496,11 @@ export function TodoApp() {
                   : "pointer-events-none absolute inset-0 z-0 overflow-hidden opacity-0",
               )}
             >
-              <div className={workspacePanelShellClassName(undefined, { layout: "assistant" })}>
+              <div
+                className={workspacePanelShellClassName(undefined, {
+                  layout: "assistant",
+                })}
+              >
                 <DailyBriefPanel
                   greetingName={greetingName}
                   avatarUrl={greetingAvatarUrl}
@@ -574,7 +587,6 @@ export function TodoApp() {
         loading={clearing}
         onConfirm={handleConfirmClear}
       />
-
     </div>
   );
 }

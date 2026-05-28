@@ -70,9 +70,7 @@ function TodoTaskRowInner({
             onCheckedChange={() => onToggle(todo.id)}
             className="mt-0.5"
             aria-label={
-              todo.isCompleted
-                ? uiCopy.a11y.markNotDone
-                : uiCopy.a11y.markDone
+              todo.isCompleted ? uiCopy.a11y.markNotDone : uiCopy.a11y.markDone
             }
           />
         </div>

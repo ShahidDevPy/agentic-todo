@@ -15,7 +15,10 @@ type StatusTone = "success" | "danger" | "neutral";
 type MutationHookOptions<TData> = {
   setError: (message: string | null) => void;
   setStatus: (message: string | null, tone?: StatusTone) => void;
-  onSuccessStatus?: (data: TData) => { message: string | null; tone?: StatusTone };
+  onSuccessStatus?: (data: TData) => {
+    message: string | null;
+    tone?: StatusTone;
+  };
   onCompleted?: (data: TData) => void;
   refetch?: () => void | Promise<void>;
   refetchQueries?: InternalRefetchQueriesInclude;
@@ -58,11 +61,10 @@ export function useAppMutation<
           }
           if (response.data) {
             setError(null);
-            const status =
-              onSuccessStatus?.(response.data) ?? {
-                message: null,
-                tone: "success" as const,
-              };
+            const status = onSuccessStatus?.(response.data) ?? {
+              message: null,
+              tone: "success" as const,
+            };
             setStatus(status.message, status.tone);
             void refetch?.();
             onCompleted?.(response.data);
@@ -76,14 +78,7 @@ export function useAppMutation<
         },
       );
     }) as MutateFn,
-    [
-      mutate,
-      onCompleted,
-      onSuccessStatus,
-      refetch,
-      setError,
-      setStatus,
-    ],
+    [mutate, onCompleted, onSuccessStatus, refetch, setError, setStatus],
   );
 
   return [run, result] as const;

@@ -12,11 +12,7 @@ type Props = {
   className?: string;
 };
 
-export function AssistantStatusChip({
-  status,
-  listening,
-  className,
-}: Props) {
+export function AssistantStatusChip({ status, listening, className }: Props) {
   if (status === "idle" && !listening) return null;
 
   const label = listening

@@ -17,7 +17,11 @@ export function workspacePanelShellClassName(
   const layout = options?.layout ?? "fixed";
   return cn(
     "border-border/60 bg-card flex flex-col rounded-2xl border shadow-sm ring-1 ring-black/[0.04] dark:ring-white/[0.06]",
-    layout === "fixed" && ["min-h-0 flex-1", WORKSPACE_PANEL_MAX_H, "overflow-hidden"],
+    layout === "fixed" && [
+      "min-h-0 flex-1",
+      WORKSPACE_PANEL_MAX_H,
+      "overflow-hidden",
+    ],
     layout === "scroll" && "min-h-0 flex-1 overflow-y-auto overscroll-contain",
     layout === "assistant" && [
       "max-lg:max-h-none max-lg:overflow-visible",

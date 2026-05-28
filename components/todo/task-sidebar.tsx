@@ -13,11 +13,7 @@ type Props = {
   onSignOut: () => Promise<void>;
 };
 
-export function TaskSidebar({
-  onCreateTask,
-  userEmail,
-  onSignOut,
-}: Props) {
+export function TaskSidebar({ onCreateTask, userEmail, onSignOut }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const assistantActive = pathname === "/";
@@ -40,7 +36,9 @@ export function TaskSidebar({
       </div>
 
       <div className="hidden px-2 pb-3 lg:block">
-        <p className="text-lg font-semibold tracking-tight">{uiCopy.appTitle}</p>
+        <p className="text-lg font-semibold tracking-tight">
+          {uiCopy.appTitle}
+        </p>
       </div>
 
       <div className="hidden px-2 pb-3 lg:block">
@@ -54,7 +52,10 @@ export function TaskSidebar({
         </Button>
       </div>
 
-      <nav className="flex gap-1 px-2 pb-2 lg:flex-col lg:pb-3" aria-label="Main">
+      <nav
+        className="flex gap-1 px-2 pb-2 lg:flex-col lg:pb-3"
+        aria-label="Main"
+      >
         <Link
           href="/"
           aria-current={assistantActive ? "page" : undefined}

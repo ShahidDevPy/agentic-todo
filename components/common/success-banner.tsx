@@ -31,7 +31,10 @@ export function SuccessBanner({
     ) : tone === "neutral" ? (
       <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
     ) : (
-      <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden />
+      <CheckCircle2
+        className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400"
+        aria-hidden
+      />
     );
 
   return (

@@ -27,5 +27,4 @@ export const GqlOperation = {
   ReorderTodos: "ReorderTodos",
 } as const;
 
-export type GqlOperationName =
-  (typeof GqlOperation)[keyof typeof GqlOperation];
+export type GqlOperationName = (typeof GqlOperation)[keyof typeof GqlOperation];

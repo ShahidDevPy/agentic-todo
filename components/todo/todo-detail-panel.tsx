@@ -3,11 +3,7 @@
 import { ArrowDown, ArrowUp, Star, Trash2 } from "lucide-react";
 import { memo, useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
@@ -113,9 +109,7 @@ function TodoDetailPanelInner({
       setDueTime(nextDate ? nextTime : "");
       if (!todo) return;
       const iso = dateAndTimePartsToIso(nextDate, nextDate ? nextTime : "");
-      const prevMs = todo.dueDate
-        ? new Date(todo.dueDate).getTime()
-        : null;
+      const prevMs = todo.dueDate ? new Date(todo.dueDate).getTime() : null;
       const nextMs = iso ? new Date(iso).getTime() : null;
       if (prevMs === nextMs) return;
       onUpdate(todo.id, { dueDateISO: iso });

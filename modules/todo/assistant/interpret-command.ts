@@ -169,12 +169,10 @@ export async function interpretAssistantCommand(
   const social = detectSocialIntent(trimmed);
   if (social) return social;
 
-  const raw = await generateGeminiText(
-    buildPrompt(trimmed, tasks, timeZone),
-  );
+  const raw = await generateGeminiText(buildPrompt(trimmed, tasks, timeZone));
 
   if (!raw) {
-    return fallbackInterpret(trimmed, tasks);
+    return fallbackInterpret(trimmed);
   }
 
   try {
@@ -186,7 +184,7 @@ export async function interpretAssistantCommand(
     /* fall through */
   }
 
-  return fallbackInterpret(trimmed, tasks);
+  return fallbackInterpret(trimmed);
 }
 
 function validateIntentAgainstTasks(
@@ -217,10 +215,7 @@ function unrecognizedClarify(): AssistantIntent {
   };
 }
 
-function fallbackInterpret(
-  transcript: string,
-  _tasks: AssistantTaskContextItem[],
-): AssistantIntent {
+function fallbackInterpret(transcript: string): AssistantIntent {
   const social = detectSocialIntent(transcript);
   if (social) return social;
 

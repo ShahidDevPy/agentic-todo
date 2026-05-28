@@ -174,7 +174,10 @@ export function TaskCreateDialog({
                     {uiCopy.createTask.dueHint}
                   </p>
                 </div>
-                <PrioritySegmentedControl value={priority} onChange={setPriority} />
+                <PrioritySegmentedControl
+                  value={priority}
+                  onChange={setPriority}
+                />
               </div>
             </div>
           </div>

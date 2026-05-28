@@ -11,8 +11,7 @@ type TodoRow = {
 };
 
 function sortTodosSmart<T extends TodoRow>(rows: T[]): T[] {
-  const rank = (p: string) =>
-    p === "high" ? 0 : p === "medium" ? 1 : 2;
+  const rank = (p: string) => (p === "high" ? 0 : p === "medium" ? 1 : 2);
   return [...rows].sort((a, b) => {
     const pr = rank(a.priority) - rank(b.priority);
     if (pr !== 0) return pr;
@@ -71,7 +70,6 @@ export const todosQuery = queryField("todos", {
     return rows;
   },
 });
-
 
 export const completedTodosCountQuery = queryField("completedTodosCount", {
   type: nonNull("Int"),

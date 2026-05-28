@@ -6,7 +6,10 @@ const STORAGE_KEY = "agentic-todo-list-order";
 
 export type ClientListOrder = "SMART" | "MANUAL";
 
-export function useTodoListOrder(): [ClientListOrder, (v: ClientListOrder) => void] {
+export function useTodoListOrder(): [
+  ClientListOrder,
+  (v: ClientListOrder) => void,
+] {
   const [order, setOrderState] = useState<ClientListOrder>("SMART");
 
   useEffect(() => {

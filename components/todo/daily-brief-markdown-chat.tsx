@@ -14,7 +14,10 @@ export function splitBriefMarkdownIntoChunks(markdown: string): string[] {
   const parts =
     byHeading.length > 1
       ? byHeading
-      : t.split(/\n\n+/).map((s) => s.trim()).filter(Boolean);
+      : t
+          .split(/\n\n+/)
+          .map((s) => s.trim())
+          .filter(Boolean);
   const trimmed = parts.map((s) => s.trim()).filter(Boolean);
   return trimmed.length ? trimmed : [t];
 }

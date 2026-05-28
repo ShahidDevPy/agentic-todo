@@ -7,10 +7,22 @@
     "build": "next build",
     "build:vercel": "prisma migrate deploy && next build",
     "start": "next start",
-    "lint": "eslint",
+    "format": "prettier --write .",
+    "format-check": "prettier --check .",
+    "lint": "eslint . --max-warnings=0",
+    "type-check": "tsc --noEmit",
+    "typecheck": "npm run type-check",
+    "precommit": "npm run format && npm run lint && npm run build",
+    "check": "npm run lint && npm run typecheck && npm run build",
+    "prepare": "husky",
     "generate:nexus": "NODE_ENV=development tsx scripts/generate-nexus-artifacts.ts",
     "postinstall": "prisma generate",
     "test:gemini": "tsx scripts/test-gemini.ts"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix"
+    ]
   },
   "dependencies": {
     "@apollo/client": "^4.1.9",
@@ -52,6 +64,9 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.3",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"

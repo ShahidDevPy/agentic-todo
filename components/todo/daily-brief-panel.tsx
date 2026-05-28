@@ -94,10 +94,7 @@ function ZeroOpenFooter({ onAddTask }: { onAddTask?: () => void }) {
   return (
     <div className="border-border/60 flex flex-col items-center gap-3 border-t border-dashed pt-5 text-center">
       <div className="bg-primary/10 flex size-12 items-center justify-center rounded-xl">
-        <ClipboardList
-          className="text-primary size-7 opacity-90"
-          aria-hidden
-        />
+        <ClipboardList className="text-primary size-7 opacity-90" aria-hidden />
       </div>
       <p className="text-foreground text-sm font-medium">
         {uiCopy.brief.allClearTitle}
@@ -186,9 +183,15 @@ export function DailyBriefPanel({
       return { label: uiCopy.brief.sourceAi, variant: "ai" as const };
     }
     if (deterministicOnly) {
-      return { label: uiCopy.brief.sourceTemplate, variant: "template" as const };
+      return {
+        label: uiCopy.brief.sourceTemplate,
+        variant: "template" as const,
+      };
     }
-    return { label: uiCopy.brief.sourceAiFallback, variant: "fallback" as const };
+    return {
+      label: uiCopy.brief.sourceAiFallback,
+      variant: "fallback" as const,
+    };
   })();
 
   useEffect(() => {
@@ -216,12 +219,7 @@ export function DailyBriefPanel({
           <p className="text-muted-foreground max-w-sm text-sm">
             {uiCopy.brief.loadFailedBody}
           </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onRefresh}
-          >
+          <Button type="button" variant="outline" size="sm" onClick={onRefresh}>
             {uiCopy.brief.retry}
           </Button>
         </div>
@@ -236,10 +234,7 @@ export function DailyBriefPanel({
       return (
         <div className="min-h-0">
           {briefRefetching ? (
-            <div
-              className="mb-3 flex shrink-0 justify-end"
-              aria-live="polite"
-            >
+            <div className="mb-3 flex shrink-0 justify-end" aria-live="polite">
               <span className="text-muted-foreground inline-flex items-center gap-1.5 rounded-full border border-border/50 bg-muted/50 px-2.5 py-1 text-xs shadow-sm">
                 <Loader2 className="size-3 animate-spin" aria-hidden />
                 {uiCopy.brief.updatingBrief}
@@ -318,9 +313,7 @@ export function DailyBriefPanel({
                   <input
                     type="checkbox"
                     checked={deterministicOnly}
-                    onChange={(e) =>
-                      onDeterministicChange(e.target.checked)
-                    }
+                    onChange={(e) => onDeterministicChange(e.target.checked)}
                     className="accent-primary mt-0.5 shrink-0"
                   />
                   <span>{uiCopy.brief.templateOnly}</span>
@@ -382,7 +375,9 @@ export function DailyBriefPanel({
               )}
               aria-label={uiCopy.assistant.messagesLabel}
             >
-              <section aria-label={uiCopy.brief.cardTitle}>{briefSection}</section>
+              <section aria-label={uiCopy.brief.cardTitle}>
+                {briefSection}
+              </section>
 
               {messages.length > 0 ? (
                 <>

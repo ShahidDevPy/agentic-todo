@@ -1,9 +1,10 @@
 /**
  * Split ISO instant into `YYYY-MM-DD` and `HH:mm` for native date/time inputs (local).
  */
-export function isoToDateAndTimeParts(
-  iso: string | null | undefined,
-): { date: string; time: string } {
+export function isoToDateAndTimeParts(iso: string | null | undefined): {
+  date: string;
+  time: string;
+} {
   if (!iso) return { date: "", time: "" };
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return { date: "", time: "" };
@@ -19,7 +20,10 @@ export function isoToDateAndTimeParts(
  * - No date → `null` (clear due).
  * - Date, empty time → 12:00 local (midday default).
  */
-export function dateAndTimePartsToIso(date: string, time: string): string | null {
+export function dateAndTimePartsToIso(
+  date: string,
+  time: string,
+): string | null {
   const d = date.trim();
   if (!d) return null;
   const t = time.trim() || "12:00";

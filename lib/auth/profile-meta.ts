@@ -45,10 +45,8 @@ function readMetaString(
   user: User | null | undefined,
   key: string,
 ): string | null {
-  const userMeta =
-    user?.user_metadata as Record<string, unknown> | undefined;
-  const appMeta =
-    user?.app_metadata as Record<string, unknown> | undefined;
+  const userMeta = user?.user_metadata as Record<string, unknown> | undefined;
+  const appMeta = user?.app_metadata as Record<string, unknown> | undefined;
 
   const v = userMeta?.[key] ?? appMeta?.[key];
   if (typeof v !== "string") return null;

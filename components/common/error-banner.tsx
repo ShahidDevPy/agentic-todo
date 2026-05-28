@@ -7,7 +7,11 @@ type ErrorBannerProps = {
   onDismiss?: () => void;
 };
 
-export function ErrorBanner({ message, className, onDismiss }: ErrorBannerProps) {
+export function ErrorBanner({
+  message,
+  className,
+  onDismiss,
+}: ErrorBannerProps) {
   if (!message) return null;
 
   return (

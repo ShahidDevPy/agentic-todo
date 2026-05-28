@@ -65,8 +65,7 @@ function parseSuccessResponse(rawText: string): string | null {
   }
 
   const first = json.candidates?.[0];
-  const text =
-    first?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+  const text = first?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
   const trimmed = text.trim();
 
   if (!trimmed) {
@@ -91,7 +90,9 @@ function parseSuccessResponse(rawText: string): string | null {
 }
 
 /** Returns null when no API key (caller should fall back). */
-export async function generateGeminiText(prompt: string): Promise<string | null> {
+export async function generateGeminiText(
+  prompt: string,
+): Promise<string | null> {
   const key = process.env.GEMINI_API_KEY?.trim();
   if (!key) return null;
 

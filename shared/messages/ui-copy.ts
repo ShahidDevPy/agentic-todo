@@ -1,8 +1,7 @@
 /** User-visible copy — single source for consistent UI text. */
 export const uiCopy = {
   appTitle: "Agentic Todo",
-  appTagline:
-    "Natural-language ready — tasks, priorities, and a daily brief.",
+  appTagline: "Natural-language ready — tasks, priorities, and a daily brief.",
 
   mockUser: {
     displayName: "You",
@@ -53,7 +52,7 @@ export const uiCopy = {
     commandsHint:
       "Ask below to add tasks, update priority, complete, delete, or say “refresh my brief”.",
     emptyHint:
-      'Try “Add buy milk tomorrow”, “Mark the design review complete”, or “Refresh my brief”.',
+      "Try “Add buy milk tomorrow”, “Mark the design review complete”, or “Refresh my brief”.",
     inputPlaceholder: "Ask or command…",
     send: "Send message",
     messagesLabel: "Brief and commands",
@@ -83,10 +82,8 @@ export const uiCopy = {
         "Smart commands aren’t available right now. You can still try simple phrases like “add buy milk” or “refresh my brief”.",
       thanks:
         "You’re welcome! I’m here if you want to add a task or refresh your brief.",
-      greeting:
-        "Hi! Tell me what you’d like to do with your tasks.",
-      goodbye:
-        "Take care! Your tasks will be here when you need them.",
+      greeting: "Hi! Tell me what you’d like to do with your tasks.",
+      goodbye: "Take care! Your tasks will be here when you need them.",
     },
   },
 
@@ -166,8 +163,7 @@ export const uiCopy = {
     refresh: "Refresh",
     retry: "Try again",
     generating: "Generating brief…",
-    generatingDetail:
-      "Analyzing your tasks and building a summary…",
+    generatingDetail: "Analyzing your tasks and building a summary…",
     writingBrief: "Writing next part…",
     statsOpen: "Open",
     statsOverdue: "Overdue",

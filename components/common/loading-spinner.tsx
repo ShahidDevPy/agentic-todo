@@ -14,7 +14,10 @@ export function LoadingSpinner({ className, label = "Loading" }: Props) {
       aria-live="polite"
       aria-busy="true"
     >
-      <Loader2 className="text-muted-foreground size-8 animate-spin" aria-hidden />
+      <Loader2
+        className="text-muted-foreground size-8 animate-spin"
+        aria-hidden
+      />
       <span className="sr-only">{label}</span>
     </div>
   );

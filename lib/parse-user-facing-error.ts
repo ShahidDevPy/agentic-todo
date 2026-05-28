@@ -1,7 +1,4 @@
-import {
-  CombinedGraphQLErrors,
-  ServerError,
-} from "@apollo/client/errors";
+import { CombinedGraphQLErrors, ServerError } from "@apollo/client/errors";
 import { errorCopy, graphqlCodeMessage } from "@/shared/messages/error-copy";
 
 /**

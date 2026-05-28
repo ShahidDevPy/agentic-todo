@@ -28,7 +28,8 @@ const authCardClassName = cn(
   "w-full max-w-md gap-0 overflow-hidden rounded-2xl border-border/60 py-0 shadow-sm ring-1 ring-black/[0.04] dark:ring-white/[0.06]",
 );
 
-const authHeaderClassName = "border-border/50 space-y-1.5 border-b px-5 pb-4 pt-5 sm:px-6 sm:pt-6";
+const authHeaderClassName =
+  "border-border/50 space-y-1.5 border-b px-5 pb-4 pt-5 sm:px-6 sm:pt-6";
 
 export function LoginForm() {
   const router = useRouter();
@@ -180,7 +181,9 @@ export function LoginForm() {
     return (
       <Card className={cn(authCardClassName, "border-dashed")}>
         <CardHeader className={authHeaderClassName}>
-          <CardTitle className="text-lg sm:text-xl">Sign in unavailable</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">
+            Sign in unavailable
+          </CardTitle>
           <CardDescription>
             Add{" "}
             <code className="text-foreground rounded bg-muted px-1 py-0.5 text-xs">

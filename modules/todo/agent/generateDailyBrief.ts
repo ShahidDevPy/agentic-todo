@@ -1,8 +1,5 @@
 import type { PrismaClient } from "@/generated/prisma/client";
-import {
-  classifyDue,
-  type DueBucket,
-} from "@/lib/brief/daily-brief-buckets";
+import { classifyDue, type DueBucket } from "@/lib/brief/daily-brief-buckets";
 import { generateGeminiText } from "@/shared/lib/gemini";
 
 const briefResultCache = new Map<
@@ -16,9 +13,7 @@ function briefCacheTtlMs(): number {
   return Math.min(sec, 3600) * 1000;
 }
 
-function todoFingerprint(
-  rows: Array<{ id: string; updatedAt: Date }>,
-): string {
+function todoFingerprint(rows: Array<{ id: string; updatedAt: Date }>): string {
   return [...rows]
     .map((r) => `${r.id}:${r.updatedAt.getTime()}`)
     .sort()
@@ -86,13 +81,15 @@ function formatDue(d: Date): string {
   }
 }
 
-function sortForDisplay(a: TodoBriefPayloadLite, b: TodoBriefPayloadLite): number {
+function sortForDisplay(
+  a: TodoBriefPayloadLite,
+  b: TodoBriefPayloadLite,
+): number {
   const ad = a.dueDate?.getTime() ?? Number.POSITIVE_INFINITY;
   const bd = b.dueDate?.getTime() ?? Number.POSITIVE_INFINITY;
   if (ad !== bd) return ad - bd;
   if (a.starred !== b.starred) return a.starred ? -1 : 1;
-  const pr = (p: string) =>
-    p === "high" ? 0 : p === "medium" ? 1 : 2;
+  const pr = (p: string) => (p === "high" ? 0 : p === "medium" ? 1 : 2);
   return pr(a.priority) - pr(b.priority);
 }
 
@@ -102,13 +99,7 @@ function bucketTasks(
   timeZone: string,
 ): Map<DueBucket, TodoBriefPayloadLite[]> {
   const map = new Map<DueBucket, TodoBriefPayloadLite[]>();
-  const keys: DueBucket[] = [
-    "overdue",
-    "today",
-    "thisWeek",
-    "later",
-    "noDue",
-  ];
+  const keys: DueBucket[] = ["overdue", "today", "thisWeek", "later", "noDue"];
   for (const k of keys) map.set(k, []);
 
   for (const r of rows) {
@@ -190,13 +181,7 @@ function buildBucketedTaskList(
     later: "LATER",
     noDue: "NO_DUE_DATE",
   };
-  const order: DueBucket[] = [
-    "overdue",
-    "today",
-    "thisWeek",
-    "later",
-    "noDue",
-  ];
+  const order: DueBucket[] = ["overdue", "today", "thisWeek", "later", "noDue"];
 
   for (const key of order) {
     const list = buckets.get(key)!;
@@ -297,7 +282,9 @@ export async function generateDailyBrief(
     options?.deterministicOnly !== true && !!process.env.GEMINI_API_KEY?.trim();
 
   if (wantsAi) {
-    const cached = briefCacheGet(dailyBriefCacheKey(userId, timeZone, pendingTodos));
+    const cached = briefCacheGet(
+      dailyBriefCacheKey(userId, timeZone, pendingTodos),
+    );
     if (cached) {
       return cached;
     }

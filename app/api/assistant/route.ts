@@ -42,10 +42,7 @@ async function resolveUserId(): Promise<string | null> {
 export async function POST(request: Request) {
   const userId = await resolveUserId();
   if (!userId) {
-    return NextResponse.json(
-      { error: "Sign in required" },
-      { status: 401 },
-    );
+    return NextResponse.json({ error: "Sign in required" }, { status: 401 });
   }
 
   let json: unknown;
@@ -95,10 +92,7 @@ export async function POST(request: Request) {
 
     const intentParsed = assistantIntentSchema.safeParse(parsed.data.intent);
     if (!intentParsed.success) {
-      return NextResponse.json(
-        { error: "Invalid intent" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Invalid intent" }, { status: 400 });
     }
 
     const tasks = await buildTaskContextForAssistant(prisma, userId);

@@ -3,179 +3,189 @@
  * Do not make changes to this file directly
  */
 
-
-import type { Context } from "./../../shared/graphql/context"
-import type { Todo } from "./../../generated/prisma/client"
-
-
-
+import type { Context } from "./../../shared/graphql/context";
+import type { Todo } from "./../../generated/prisma/client";
 
 declare global {
   interface NexusGen extends NexusGenTypes {}
 }
 
-export interface NexusGenInputs {
-}
+export interface NexusGenInputs {}
 
 export interface NexusGenEnums {
-  TodoListFilter: "ACTIVE" | "ALL" | "COMPLETED"
-  TodoListOrder: "MANUAL" | "SMART"
-  TodoPriority: "high" | "low" | "medium"
+  TodoListFilter: "ACTIVE" | "ALL" | "COMPLETED";
+  TodoListOrder: "MANUAL" | "SMART";
+  TodoPriority: "high" | "low" | "medium";
 }
 
 export interface NexusGenScalars {
-  String: string
-  Int: number
-  Float: number
-  Boolean: boolean
-  ID: string
+  String: string;
+  Int: number;
+  Float: number;
+  Boolean: boolean;
+  ID: string;
 }
 
 export interface NexusGenObjects {
-  DailyBrief: { // root type
+  DailyBrief: {
+    // root type
     overdueCount: number; // Int!
     pendingCount: number; // Int!
     summaryMarkdown: string; // String!
     usedGemini: boolean; // Boolean!
-  }
+  };
   Mutation: {};
   Query: {};
   Todo: Todo;
 }
 
-export interface NexusGenInterfaces {
-}
+export interface NexusGenInterfaces {}
 
-export interface NexusGenUnions {
-}
+export interface NexusGenUnions {}
 
-export type NexusGenRootTypes = NexusGenObjects
+export type NexusGenRootTypes = NexusGenObjects;
 
-export type NexusGenAllTypes = NexusGenRootTypes & NexusGenScalars & NexusGenEnums
+export type NexusGenAllTypes = NexusGenRootTypes &
+  NexusGenScalars &
+  NexusGenEnums;
 
 export interface NexusGenFieldTypes {
-  DailyBrief: { // field return type
+  DailyBrief: {
+    // field return type
     overdueCount: number; // Int!
     pendingCount: number; // Int!
     summaryMarkdown: string; // String!
     usedGemini: boolean; // Boolean!
-  }
-  Mutation: { // field return type
+  };
+  Mutation: {
+    // field return type
     clearCompletedTodos: number; // Int!
-    createTodo: NexusGenRootTypes['Todo']; // Todo!
+    createTodo: NexusGenRootTypes["Todo"]; // Todo!
     deleteTodo: boolean; // Boolean!
-    reorderTodos: NexusGenRootTypes['Todo'][]; // [Todo!]!
-    toggleTodo: NexusGenRootTypes['Todo']; // Todo!
-    updateTodo: NexusGenRootTypes['Todo']; // Todo!
-  }
-  Query: { // field return type
+    reorderTodos: NexusGenRootTypes["Todo"][]; // [Todo!]!
+    toggleTodo: NexusGenRootTypes["Todo"]; // Todo!
+    updateTodo: NexusGenRootTypes["Todo"]; // Todo!
+  };
+  Query: {
+    // field return type
     completedTodosCount: number; // Int!
-    dailyBrief: NexusGenRootTypes['DailyBrief']; // DailyBrief!
-    todo: NexusGenRootTypes['Todo'] | null; // Todo
-    todos: NexusGenRootTypes['Todo'][]; // [Todo!]!
-  }
-  Todo: { // field return type
+    dailyBrief: NexusGenRootTypes["DailyBrief"]; // DailyBrief!
+    todo: NexusGenRootTypes["Todo"] | null; // Todo
+    todos: NexusGenRootTypes["Todo"][]; // [Todo!]!
+  };
+  Todo: {
+    // field return type
     completedAt: string | null; // String
     createdAt: string; // String!
     description: string | null; // String
     dueDate: string | null; // String
     id: string; // String!
     isCompleted: boolean; // Boolean!
-    priority: NexusGenEnums['TodoPriority']; // TodoPriority!
+    priority: NexusGenEnums["TodoPriority"]; // TodoPriority!
     sortOrder: number; // Int!
     starred: boolean; // Boolean!
     title: string; // String!
     updatedAt: string; // String!
     userId: string; // String!
-  }
+  };
 }
 
 export interface NexusGenFieldTypeNames {
-  DailyBrief: { // field return type name
-    overdueCount: 'Int'
-    pendingCount: 'Int'
-    summaryMarkdown: 'String'
-    usedGemini: 'Boolean'
-  }
-  Mutation: { // field return type name
-    clearCompletedTodos: 'Int'
-    createTodo: 'Todo'
-    deleteTodo: 'Boolean'
-    reorderTodos: 'Todo'
-    toggleTodo: 'Todo'
-    updateTodo: 'Todo'
-  }
-  Query: { // field return type name
-    completedTodosCount: 'Int'
-    dailyBrief: 'DailyBrief'
-    todo: 'Todo'
-    todos: 'Todo'
-  }
-  Todo: { // field return type name
-    completedAt: 'String'
-    createdAt: 'String'
-    description: 'String'
-    dueDate: 'String'
-    id: 'String'
-    isCompleted: 'Boolean'
-    priority: 'TodoPriority'
-    sortOrder: 'Int'
-    starred: 'Boolean'
-    title: 'String'
-    updatedAt: 'String'
-    userId: 'String'
-  }
+  DailyBrief: {
+    // field return type name
+    overdueCount: "Int";
+    pendingCount: "Int";
+    summaryMarkdown: "String";
+    usedGemini: "Boolean";
+  };
+  Mutation: {
+    // field return type name
+    clearCompletedTodos: "Int";
+    createTodo: "Todo";
+    deleteTodo: "Boolean";
+    reorderTodos: "Todo";
+    toggleTodo: "Todo";
+    updateTodo: "Todo";
+  };
+  Query: {
+    // field return type name
+    completedTodosCount: "Int";
+    dailyBrief: "DailyBrief";
+    todo: "Todo";
+    todos: "Todo";
+  };
+  Todo: {
+    // field return type name
+    completedAt: "String";
+    createdAt: "String";
+    description: "String";
+    dueDate: "String";
+    id: "String";
+    isCompleted: "Boolean";
+    priority: "TodoPriority";
+    sortOrder: "Int";
+    starred: "Boolean";
+    title: "String";
+    updatedAt: "String";
+    userId: "String";
+  };
 }
 
 export interface NexusGenArgTypes {
   Mutation: {
-    createTodo: { // args
+    createTodo: {
+      // args
       description?: string | null; // String
       dueDateISO?: string | null; // String
-      priority?: NexusGenEnums['TodoPriority'] | null; // TodoPriority
+      priority?: NexusGenEnums["TodoPriority"] | null; // TodoPriority
       starred?: boolean | null; // Boolean
       title: string; // String!
-    }
-    deleteTodo: { // args
+    };
+    deleteTodo: {
+      // args
       id: string; // String!
-    }
-    reorderTodos: { // args
+    };
+    reorderTodos: {
+      // args
       orderedIds: string[]; // [String!]!
-    }
-    toggleTodo: { // args
+    };
+    toggleTodo: {
+      // args
       id: string; // String!
-    }
-    updateTodo: { // args
+    };
+    updateTodo: {
+      // args
       description?: string | null; // String
       dueDateISO?: string | null; // String
       id: string; // String!
       isCompleted?: boolean | null; // Boolean
-      priority?: NexusGenEnums['TodoPriority'] | null; // TodoPriority
+      priority?: NexusGenEnums["TodoPriority"] | null; // TodoPriority
       starred?: boolean | null; // Boolean
       title?: string | null; // String
-    }
-  }
+    };
+  };
   Query: {
-    dailyBrief: { // args
+    dailyBrief: {
+      // args
       deterministicOnly?: boolean | null; // Boolean
       timeZone?: string | null; // String
-    }
-    todo: { // args
+    };
+    todo: {
+      // args
       id: string; // String!
-    }
-    todos: { // args
-      listFilter: NexusGenEnums['TodoListFilter'] | null; // TodoListFilter
-      listOrder: NexusGenEnums['TodoListOrder'] | null; // TodoListOrder
+    };
+    todos: {
+      // args
+      listFilter: NexusGenEnums["TodoListFilter"] | null; // TodoListFilter
+      listOrder: NexusGenEnums["TodoListOrder"] | null; // TodoListOrder
       starredOnly?: boolean | null; // Boolean
-    }
-  }
+    };
+  };
 }
 
-export interface NexusGenAbstractTypeMembers {
-}
+export interface NexusGenAbstractTypeMembers {}
 
-export interface NexusGenTypeInterfaces {
-}
+export interface NexusGenTypeInterfaces {}
 
 export type NexusGenObjectNames = keyof NexusGenObjects;
 
@@ -195,11 +205,11 @@ export type NexusGenAbstractsUsingStrategyResolveType = never;
 
 export type NexusGenFeaturesConfig = {
   abstractTypeStrategies: {
-    isTypeOf: false
-    resolveType: true
-    __typename: false
-  }
-}
+    isTypeOf: false;
+    resolveType: true;
+    __typename: false;
+  };
+};
 
 export interface NexusGenTypes {
   context: Context;
@@ -217,28 +227,37 @@ export interface NexusGenTypes {
   interfaceNames: NexusGenInterfaceNames;
   scalarNames: NexusGenScalarNames;
   unionNames: NexusGenUnionNames;
-  allInputTypes: NexusGenTypes['inputNames'] | NexusGenTypes['enumNames'] | NexusGenTypes['scalarNames'];
-  allOutputTypes: NexusGenTypes['objectNames'] | NexusGenTypes['enumNames'] | NexusGenTypes['unionNames'] | NexusGenTypes['interfaceNames'] | NexusGenTypes['scalarNames'];
-  allNamedTypes: NexusGenTypes['allInputTypes'] | NexusGenTypes['allOutputTypes']
-  abstractTypes: NexusGenTypes['interfaceNames'] | NexusGenTypes['unionNames'];
+  allInputTypes:
+    | NexusGenTypes["inputNames"]
+    | NexusGenTypes["enumNames"]
+    | NexusGenTypes["scalarNames"];
+  allOutputTypes:
+    | NexusGenTypes["objectNames"]
+    | NexusGenTypes["enumNames"]
+    | NexusGenTypes["unionNames"]
+    | NexusGenTypes["interfaceNames"]
+    | NexusGenTypes["scalarNames"];
+  allNamedTypes:
+    | NexusGenTypes["allInputTypes"]
+    | NexusGenTypes["allOutputTypes"];
+  abstractTypes: NexusGenTypes["interfaceNames"] | NexusGenTypes["unionNames"];
   abstractTypeMembers: NexusGenAbstractTypeMembers;
   objectsUsingAbstractStrategyIsTypeOf: NexusGenObjectsUsingAbstractStrategyIsTypeOf;
   abstractsUsingStrategyResolveType: NexusGenAbstractsUsingStrategyResolveType;
   features: NexusGenFeaturesConfig;
 }
 
-
 declare global {
-  interface NexusGenPluginTypeConfig<TypeName extends string> {
-  }
-  interface NexusGenPluginInputTypeConfig<TypeName extends string> {
-  }
-  interface NexusGenPluginFieldConfig<TypeName extends string, FieldName extends string> {
-  }
-  interface NexusGenPluginInputFieldConfig<TypeName extends string, FieldName extends string> {
-  }
-  interface NexusGenPluginSchemaConfig {
-  }
-  interface NexusGenPluginArgConfig {
-  }
+  interface NexusGenPluginTypeConfig<TypeName extends string> {}
+  interface NexusGenPluginInputTypeConfig<TypeName extends string> {}
+  interface NexusGenPluginFieldConfig<
+    TypeName extends string,
+    FieldName extends string,
+  > {}
+  interface NexusGenPluginInputFieldConfig<
+    TypeName extends string,
+    FieldName extends string,
+  > {}
+  interface NexusGenPluginSchemaConfig {}
+  interface NexusGenPluginArgConfig {}
 }

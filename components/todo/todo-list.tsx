@@ -4,10 +4,7 @@ import { ClipboardList, Loader2 } from "lucide-react";
 import { TodoTaskRow } from "@/components/todo/todo-task-row";
 import { uiCopy } from "@/shared/messages/ui-copy";
 import type { TodoGql, TodoPriority } from "@/types/todo-view";
-import {
-  groupTodosByDue,
-  type DueGroupId,
-} from "@/lib/todo-due-groups";
+import { groupTodosByDue, type DueGroupId } from "@/lib/todo-due-groups";
 
 type Props = {
   todos: TodoGql[];
@@ -38,9 +35,7 @@ export function TodoList({
   onUpdatePriority,
 }: Props) {
   const groups =
-    groupByDue && todos.length > 0
-      ? groupTodosByDue(todos, dueLabels)
-      : [];
+    groupByDue && todos.length > 0 ? groupTodosByDue(todos, dueLabels) : [];
 
   return (
     <div className="flex min-h-0 flex-col">
@@ -52,7 +47,10 @@ export function TodoList({
       ) : null}
       {!loading && todos.length === 0 ? (
         <div className="text-muted-foreground border-muted flex flex-col items-center gap-3 rounded-xl border border-dashed py-12 text-center text-sm">
-          <ClipboardList className="text-muted-foreground/80 size-10" aria-hidden />
+          <ClipboardList
+            className="text-muted-foreground/80 size-10"
+            aria-hidden
+          />
           <p className="max-w-xs px-4">{emptyLabel}</p>
         </div>
       ) : null}

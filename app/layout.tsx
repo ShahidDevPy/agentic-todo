@@ -21,11 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      style={fontVars}
-      className="h-full antialiased"
-    >
+    <html lang="en" style={fontVars} className="h-full antialiased">
       <body className="min-h-full flex flex-col font-sans">
         <Providers>{children}</Providers>
       </body>

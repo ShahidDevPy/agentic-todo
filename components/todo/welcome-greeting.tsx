@@ -16,11 +16,7 @@ type Props = {
   avatarUrl?: string | null;
 };
 
-export function WelcomeGreeting({
-  className,
-  greetingName,
-  avatarUrl,
-}: Props) {
+export function WelcomeGreeting({ className, greetingName, avatarUrl }: Props) {
   const line = `${greetingForHour(new Date())}, ${greetingName}`;
   return (
     <div

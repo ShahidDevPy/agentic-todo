@@ -1,8 +1,4 @@
-import {
-  ApolloClient,
-  HttpLink,
-  InMemoryCache,
-} from "@apollo/client";
+import { ApolloClient, HttpLink, InMemoryCache } from "@apollo/client";
 
 function graphqlHttpUri(): string {
   if (typeof window !== "undefined") {

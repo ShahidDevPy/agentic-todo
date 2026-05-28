@@ -1,10 +1,5 @@
 import { DailyBrief, dailyBriefQuery } from "./todo.brief";
-import {
-  Todo,
-  TodoListFilter,
-  TodoListOrder,
-  TodoPriority,
-} from "./todo.node";
+import { Todo, TodoListFilter, TodoListOrder, TodoPriority } from "./todo.node";
 import {
   clearCompletedTodosMutation,
   createTodoMutation,

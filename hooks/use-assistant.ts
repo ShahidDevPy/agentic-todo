@@ -38,6 +38,7 @@ export function useAssistant(options: {
   timeZone: string;
   onTasksChanged?: () => void;
 }) {
+  const { timeZone, onTasksChanged } = options;
   const [messages, setMessages] = useState<AssistantChatMessage[]>([]);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -48,12 +49,9 @@ export function useAssistant(options: {
   const abortControllerRef = useRef<AbortController | null>(null);
   const inFlightRef = useRef(false);
 
-  const appendMessage = useCallback(
-    (msg: Omit<AssistantChatMessage, "id">) => {
-      setMessages((prev) => [...prev, { ...msg, id: newMessageId() }]);
-    },
-    [],
-  );
+  const appendMessage = useCallback((msg: Omit<AssistantChatMessage, "id">) => {
+    setMessages((prev) => [...prev, { ...msg, id: newMessageId() }]);
+  }, []);
 
   const newAbortSignal = useCallback(() => {
     abortControllerRef.current?.abort();
@@ -91,7 +89,7 @@ export function useAssistant(options: {
           body: JSON.stringify({
             phase: "execute",
             intent,
-            timeZone: options.timeZone,
+            timeZone,
           }),
         });
 
@@ -112,15 +110,13 @@ export function useAssistant(options: {
           intent.action === "summarize" && intent.style !== "list";
 
         if (shouldRefreshTasks(intent)) {
-          await options.onTasksChanged?.();
+          await onTasksChanged?.();
         }
 
         appendMessage({
           role: "assistant",
           content: result.message,
-          summaryMarkdown: refreshBrief
-            ? undefined
-            : result.summaryMarkdown,
+          summaryMarkdown: refreshBrief ? undefined : result.summaryMarkdown,
         });
       } catch (e) {
         if (isAbortError(e)) return;
@@ -133,7 +129,7 @@ export function useAssistant(options: {
         }
       }
     },
-    [appendMessage, options.onTasksChanged, options.timeZone],
+    [appendMessage, onTasksChanged, timeZone],
   );
 
   const interpret = useCallback(
@@ -156,7 +152,7 @@ export function useAssistant(options: {
           body: JSON.stringify({
             phase: "interpret",
             transcript: trimmed,
-            timeZone: options.timeZone,
+            timeZone,
           }),
         });
 
@@ -205,7 +201,7 @@ export function useAssistant(options: {
         inFlightRef.current = false;
       }
     },
-    [appendMessage, executeIntent, newAbortSignal, options.timeZone],
+    [appendMessage, executeIntent, newAbortSignal, timeZone],
   );
 
   const confirmPending = useCallback(async () => {

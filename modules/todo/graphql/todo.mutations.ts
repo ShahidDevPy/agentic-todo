@@ -94,7 +94,9 @@ export const updateTodoMutation = mutationField("updateTodo", {
   },
   resolve: async (_parent, args, ctx) => {
     const userId = requireUserId(ctx);
-    const existing = await ctx.prisma.todo.findUnique({ where: { id: args.id } });
+    const existing = await ctx.prisma.todo.findUnique({
+      where: { id: args.id },
+    });
     if (!existing || existing.userId !== userId) {
       throw new GraphQLError("Todo not found", {
         extensions: { code: "NOT_FOUND" },
@@ -134,10 +136,7 @@ export const updateTodoMutation = mutationField("updateTodo", {
     }
 
     if ("dueDateISO" in args) {
-      if (
-        typeof args.dueDateISO !== "string" ||
-        args.dueDateISO.length === 0
-      ) {
+      if (typeof args.dueDateISO !== "string" || args.dueDateISO.length === 0) {
         data.dueDate = null;
       } else {
         const d = new Date(args.dueDateISO);
@@ -200,18 +199,21 @@ export const deleteTodoMutation = mutationField("deleteTodo", {
   },
 });
 
-export const clearCompletedTodosMutation = mutationField("clearCompletedTodos", {
-  type: nonNull("Int"),
-  description: "Deletes all completed todos for this user.",
-  args: {},
-  resolve: async (_parent, _args, ctx) => {
-    const userId = requireUserId(ctx);
-    const res = await ctx.prisma.todo.deleteMany({
-      where: { userId, isCompleted: true },
-    });
-    return res.count;
+export const clearCompletedTodosMutation = mutationField(
+  "clearCompletedTodos",
+  {
+    type: nonNull("Int"),
+    description: "Deletes all completed todos for this user.",
+    args: {},
+    resolve: async (_parent, _args, ctx) => {
+      const userId = requireUserId(ctx);
+      const res = await ctx.prisma.todo.deleteMany({
+        where: { userId, isCompleted: true },
+      });
+      return res.count;
+    },
   },
-});
+);
 
 export const reorderTodosMutation = mutationField("reorderTodos", {
   type: nonNull(list(nonNull("Todo"))),

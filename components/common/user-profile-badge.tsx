@@ -25,10 +25,7 @@ export function UserProfileBadge({
 
   if (greetingOnly) {
     return (
-      <div
-        className={cn("flex shrink-0 items-center", className)}
-        aria-hidden
-      >
+      <div className={cn("flex shrink-0 items-center", className)} aria-hidden>
         <div
           className={cn(
             "from-primary ring-border flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br to-violet-600 text-base text-white shadow-sm ring-2 ring-offset-2 ring-offset-background",
@@ -53,8 +50,7 @@ export function UserProfileBadge({
   }
 
   const title = profileTitle?.trim() || uiCopy.mockUser.displayName;
-  const subtitle =
-    profileSubtitle?.trim() || uiCopy.mockUser.status;
+  const subtitle = profileSubtitle?.trim() || uiCopy.mockUser.status;
 
   if (compact) {
     return (

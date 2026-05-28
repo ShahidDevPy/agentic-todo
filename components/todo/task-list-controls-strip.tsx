@@ -54,9 +54,9 @@ export function TaskListControlsStrip({
         type="button"
         role="tab"
         aria-selected={listSegment === "all"}
-            className={cn(
-              "inline-flex h-7 shrink-0 items-center rounded-md px-2 text-xs font-medium transition-colors sm:px-2.5",
-              listSegment === "all"
+        className={cn(
+          "inline-flex h-7 shrink-0 items-center rounded-md px-2 text-xs font-medium transition-colors sm:px-2.5",
+          listSegment === "all"
             ? "bg-background text-foreground shadow-sm"
             : "text-muted-foreground hover:text-foreground",
         )}
@@ -68,9 +68,9 @@ export function TaskListControlsStrip({
         type="button"
         role="tab"
         aria-selected={listSegment === "upcoming"}
-            className={cn(
-              "inline-flex h-7 shrink-0 items-center gap-1 rounded-md px-2 text-xs font-medium transition-colors sm:px-2.5",
-              listSegment === "upcoming"
+        className={cn(
+          "inline-flex h-7 shrink-0 items-center gap-1 rounded-md px-2 text-xs font-medium transition-colors sm:px-2.5",
+          listSegment === "upcoming"
             ? "bg-background text-foreground shadow-sm"
             : "text-muted-foreground hover:text-foreground",
         )}
@@ -191,10 +191,7 @@ export function TaskListControlsStrip({
           title={uiCopy.toolbar.sortLabel}
         >
           <span className="sr-only">{uiCopy.toolbar.sortLabel}</span>
-          <ArrowDownWideNarrow
-            className="size-3.5 opacity-80"
-            aria-hidden
-          />
+          <ArrowDownWideNarrow className="size-3.5 opacity-80" aria-hidden />
         </span>
         {orderToggle}
       </div>
