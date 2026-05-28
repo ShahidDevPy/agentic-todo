@@ -54,9 +54,7 @@ export function ForgotPasswordForm() {
       setLoading(true);
       try {
         const supabase = getSupabaseBrowserClient();
-        const redirectTo = buildPasswordResetRedirectUrl(
-          window.location.origin,
-        );
+        const redirectTo = buildPasswordResetRedirectUrl(window.location.origin);
         const { error: err } = await supabase.auth.resetPasswordForEmail(
           trimmed,
           { redirectTo },
@@ -77,9 +75,7 @@ export function ForgotPasswordForm() {
     return (
       <Card className={cn(authCardClassName, "border-dashed")}>
         <CardHeader className={authHeaderClassName}>
-          <CardTitle className="text-lg sm:text-xl">
-            Reset unavailable
-          </CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Reset unavailable</CardTitle>
           <CardDescription>
             Configure Supabase env vars in{" "}
             <code className="text-foreground rounded bg-muted px-1 py-0.5 text-xs">
