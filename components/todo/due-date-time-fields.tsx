@@ -23,9 +23,6 @@ type Props = {
   labelClassName: string;
 };
 
-/**
- * Paired native `date` + `time` inputs. Layout matches existing create vs detail panels.
- */
 export function DueDateTimeFields({
   variant,
   dateId,

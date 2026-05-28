@@ -25,7 +25,6 @@ export type CreateTaskPayload = {
   title: string;
   description: string | null;
   priority: TodoPriority;
-  /** ISO string or null when no due date chosen. */
   dueDateISO: string | null;
 };
 

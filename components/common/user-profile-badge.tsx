@@ -5,17 +5,10 @@ import { cn } from "@/lib/utils";
 import { uiCopy } from "@/shared/messages/ui-copy";
 
 type Props = {
-  /**
-   * default: large sidebar; inline: list row; compact: header chip;
-   * greeting: avatar only (next to welcome headline).
-   */
   variant?: "sidebar" | "inline" | "compact" | "greeting";
   className?: string;
-  /** When set, replaces the default “You” / profile label (all variants). */
   profileTitle?: string | null;
-  /** Inline / sidebar: second line. Compact: optional muted line under the title. */
   profileSubtitle?: string | null;
-  /** Optional avatar for `variant="greeting"` / `compact` (Google OAuth, etc). */
   avatarUrl?: string | null;
 };
 
@@ -39,7 +32,6 @@ export function UserProfileBadge({
         <div
           className={cn(
             "from-primary ring-border flex size-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br to-violet-600 text-base text-white shadow-sm ring-2 ring-offset-2 ring-offset-background",
-            // Keep content nicely clipped.
             "overflow-hidden",
           )}
         >

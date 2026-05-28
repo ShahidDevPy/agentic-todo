@@ -5,7 +5,6 @@ import {
 } from "@/lib/brief/daily-brief-buckets";
 import { generateGeminiText } from "@/shared/lib/gemini";
 
-/** In-memory cache for successful Gemini briefs — cuts repeat API calls (helps free-tier limits). Set GEMINI_BRIEF_CACHE_SECONDS=0 to disable. */
 const briefResultCache = new Map<
   string,
   { storedAt: number; payload: DailyBriefPayload }
@@ -60,7 +59,6 @@ export type DailyBriefPayload = {
   summaryMarkdown: string;
   pendingCount: number;
   overdueCount: number;
-  /** True when non-empty text came from the Gemini API (not deterministic fallback). */
   usedGemini: boolean;
 };
 
@@ -72,7 +70,6 @@ export type TodoBriefPayloadLite = {
   starred: boolean;
 };
 
-/** Max characters of task Details sent to the model (avoid huge prompts). */
 const MAX_DETAIL_IN_PROMPT = 400;
 
 function truncateDetail(s: string, max = MAX_DETAIL_IN_PROMPT): string {
@@ -157,7 +154,6 @@ function sectionsFromBuckets(
   return parts.join("\n\n");
 }
 
-/** Works offline / without API key — good for previews and CI. */
 export function deterministicDailyBrief(
   rows: TodoBriefPayloadLite[],
   now: Date,
@@ -256,16 +252,10 @@ Tasks (group tags reflect calendar buckets in ${timeZone}; indented "Details:" i
 }
 
 export type BriefOptions = {
-  /** Skip Gemini / templated briefing only (no network). */
   deterministicOnly?: boolean;
-  /**
-   * IANA timezone (e.g. from Intl.DateTimeFormat().resolvedOptions().timeZone).
-   * Invalid values fall back to UTC on the server.
-   */
   timeZone?: string | null;
 };
 
-/** Summarize a user’s open todos; uses Gemini when GEMINI_API_KEY is set. */
 export async function generateDailyBrief(
   prisma: PrismaClient,
   userId: string,

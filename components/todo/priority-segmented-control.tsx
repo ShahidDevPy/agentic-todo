@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 import { uiCopy } from "@/shared/messages/ui-copy";
 import type { TodoPriority } from "@/types/todo-view";
 
-/** Text colors aligned with `PriorityDotPicker` (slate / amber / red). */
 export const PRIORITY_SEGMENTS: {
   value: TodoPriority;
   label: string;
@@ -30,12 +29,10 @@ export const PRIORITY_SEGMENTS: {
 type Props = {
   value: TodoPriority;
   onChange: (p: TodoPriority) => void;
-  /** Defaults to add-task priority label. */
   ariaLabel?: string;
   disabled?: boolean;
 };
 
-/** Segmented Low / Medium / High control (create task, etc.). */
 export function PrioritySegmentedControl({
   value,
   onChange,

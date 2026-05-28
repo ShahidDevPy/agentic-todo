@@ -39,11 +39,9 @@ type Props = {
   onChange: (p: TodoPriority) => void;
   className?: string;
   disabled?: boolean;
-  /** Smaller dots and gaps for task list rows. */
   compact?: boolean;
 };
 
-/** Three colored dots: low (slate), medium (amber), high (red). */
 export function PriorityDotPicker({
   value,
   onChange,

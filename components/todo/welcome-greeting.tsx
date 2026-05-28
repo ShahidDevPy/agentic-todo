@@ -12,9 +12,7 @@ function greetingForHour(d: Date): string {
 
 type Props = {
   className?: string;
-  /** First name from profile, or a generic label (e.g. “You”) — shown once in the headline. */
   greetingName: string;
-  /** Optional avatar URL for the greeting badge (Google OAuth, etc). */
   avatarUrl?: string | null;
 };
 

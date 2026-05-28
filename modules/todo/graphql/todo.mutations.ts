@@ -47,10 +47,6 @@ export const createTodoMutation = mutationField("createTodo", {
     };
     const dueDate = parseDueOptional();
 
-    /**
-     * New tasks appear first (sortOrder asc). Shift this user’s rows down the stack
-     * so relative manual order is preserved and the insert is always at the top.
-     */
     return ctx.prisma.$transaction(async (tx) => {
       await tx.todo.updateMany({
         where: { userId },

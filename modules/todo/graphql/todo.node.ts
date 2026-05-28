@@ -6,13 +6,11 @@ export const TodoPriority = enumType({
   members: ["low", "medium", "high"],
 });
 
-/** Which tasks to list: open only (default), done only, or everything. */
 export const TodoListFilter = enumType({
   name: "TodoListFilter",
   members: ["ACTIVE", "COMPLETED", "ALL"],
 });
 
-/** How to order rows: drag order (sortOrder) vs priority + due date. */
 export const TodoListOrder = enumType({
   name: "TodoListOrder",
   members: ["MANUAL", "SMART"],

@@ -7,7 +7,6 @@ type ErrorBannerProps = {
   onDismiss?: () => void;
 };
 
-/** Inline alert for query/mutation failures (accessible, dismissible). */
 export function ErrorBanner({ message, className, onDismiss }: ErrorBannerProps) {
   if (!message) return null;
 

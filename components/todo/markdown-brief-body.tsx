@@ -28,7 +28,6 @@ export const briefMarkdownComponents: MdProps["components"] = {
   em: (p) => <em className="italic">{p.children}</em>,
 };
 
-/** Kept in a separate chunk so `react-markdown` loads lazily from the brief panel. */
 export function MarkdownBriefBody({ text }: { text: string }) {
   return <Markdown components={briefMarkdownComponents}>{text}</Markdown>;
 }

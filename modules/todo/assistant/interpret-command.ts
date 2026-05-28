@@ -68,7 +68,6 @@ function matchesPhrase(normalized: string, phrases: string[]): boolean {
   );
 }
 
-/** Gratitude, greetings, or sign-offs with no task request. */
 function detectSocialIntent(transcript: string): AssistantIntent | null {
   const trimmed = transcript.trim();
   if (!trimmed || containsTaskVerbs(trimmed)) return null;
@@ -218,7 +217,6 @@ function unrecognizedClarify(): AssistantIntent {
   };
 }
 
-/** Simple fallback when Gemini is unavailable or response could not be parsed. */
 function fallbackInterpret(
   transcript: string,
   _tasks: AssistantTaskContextItem[],

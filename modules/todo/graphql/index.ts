@@ -1,6 +1,3 @@
-/**
- * Todo domain GraphQL definitions (presentation layer — Nexus / GraphQL only).
- */
 import { DailyBrief, dailyBriefQuery } from "./todo.brief";
 import {
   Todo,

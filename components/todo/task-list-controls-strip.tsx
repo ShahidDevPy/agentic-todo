@@ -30,9 +30,6 @@ type Props = {
   canClear: boolean;
 };
 
-/**
- * Scope tabs, filter icon toggles, clear completed, and list order.
- */
 export function TaskListControlsStrip({
   listSegment,
   onListSegmentChange,

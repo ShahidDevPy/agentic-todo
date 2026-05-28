@@ -7,7 +7,6 @@ import { briefMarkdownComponents } from "@/components/todo/markdown-brief-body";
 import { cn } from "@/lib/utils";
 import { uiCopy } from "@/shared/messages/ui-copy";
 
-/** Split Markdown into streamed chunks — prefer ## section boundaries so lists stay intact. */
 export function splitBriefMarkdownIntoChunks(markdown: string): string[] {
   const t = markdown.trim();
   if (!t) return [];
@@ -28,12 +27,10 @@ function chunkRevealDelayMs(chunkCount: number): number {
 
 type Props = {
   text: string;
-  /** Sequential bubble reveal (recommended for streamed enhanced summaries). */
   stream: boolean;
   className?: string;
 };
 
-/** Chat-style stacked bubbles; optionally reveals chunks over time like a threaded reply. */
 export function DailyBriefMarkdownChat({ text, stream, className }: Props) {
   const chunks = useMemo(() => splitBriefMarkdownIntoChunks(text), [text]);
   const [visible, setVisible] = useState(() => (!stream ? chunks.length : 0));

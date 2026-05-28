@@ -13,7 +13,6 @@ type Props = {
   todos: TodoGql[];
   loading: boolean;
   emptyLabel?: string;
-  /** When false, render a flat list (e.g. sidebar filtered to one due bucket). */
   groupByDue?: boolean;
   selectedTodoId: string | null;
   onSelectTodo: (id: string) => void;

@@ -66,10 +66,8 @@ export function TodoApp() {
 
   const [completedOnly, setCompletedOnly] = useState(false);
   const [starredOnly, setStarredOnly] = useState(false);
-  /** Routes: `/` = Daily brief, `/tasks` = My tasks. */
   const mainNav: MainNav = pathname === "/tasks" ? "tasks" : "assistant";
   const [createOpen, setCreateOpen] = useState(false);
-  /** When false, server may use optional enhancement for the brief. When true, template only. */
   const [briefDeterministic, setBriefDeterministic] = useState(false);
   const [selectedTodoId, setSelectedTodoId] = useState<string | null>(null);
   const [listSegment, setListSegment] = useState<TaskListSegment>("all");
@@ -81,7 +79,6 @@ export function TodoApp() {
   const [deleteTarget, setDeleteTarget] = useState<TodoGql | null>(null);
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
 
-  /** IANA zone for daily brief bucketing (client clock). */
   const viewerTimeZone = useMemo(
     () => Intl.DateTimeFormat().resolvedOptions().timeZone,
     [],

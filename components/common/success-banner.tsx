@@ -10,7 +10,6 @@ type SuccessBannerProps = {
   onDismiss?: () => void;
 };
 
-/** Inline confirmation for successful mutations (accessible, dismissible). */
 export function SuccessBanner({
   message,
   tone = "success",

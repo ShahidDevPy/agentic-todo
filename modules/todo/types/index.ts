@@ -1,9 +1,7 @@
 import { z } from "zod";
 
-/** Matches stored `Todo.priority` values and GraphQL `TodoPriority`. */
 export const todoPrioritySchema = z.enum(["low", "medium", "high"]);
 
-/** Shape aligned with Prisma `Todo` for API / UI boundaries (ISO datetimes as strings). */
 export const TodoSchema = z.object({
   id: z.string().uuid(),
   userId: z.string().min(1),
@@ -21,7 +19,6 @@ export const TodoSchema = z.object({
 
 export type Todo = z.infer<typeof TodoSchema>;
 
-/** Client-side parsing of GraphQL `DailyBrief`. */
 export const dailyBriefWireSchema = z.object({
   summaryMarkdown: z.string().min(1),
   pendingCount: z.number().int().nonnegative(),

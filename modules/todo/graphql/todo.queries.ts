@@ -10,7 +10,6 @@ type TodoRow = {
   createdAt: Date;
 };
 
-/** Higher priority and sooner due dates first; ties use manual order then recency. */
 function sortTodosSmart<T extends TodoRow>(rows: T[]): T[] {
   const rank = (p: string) =>
     p === "high" ? 0 : p === "medium" ? 1 : 2;

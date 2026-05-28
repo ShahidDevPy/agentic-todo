@@ -23,7 +23,6 @@ type Props = {
   onConfirm: () => void | Promise<void>;
 };
 
-/** Accessible confirmation for destructive actions (delete, bulk clear). */
 export function DestructiveConfirmDialog({
   open,
   onOpenChange,
