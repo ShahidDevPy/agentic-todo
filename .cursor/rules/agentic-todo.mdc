@@ -1,0 +1,16 @@
+---
+description: Agentic Todo — layout and project-specific gotchas
+alwaysApply: true
+---
+
+# Agentic Todo
+
+Next.js **16** — read `node_modules/next/dist/docs/` before changing routes, `proxy.ts`, or API handlers (differs from older Next).
+
+**Where code goes:** `app/` · `components/` · `hooks/` · `lib/` · `modules/todo/` (GraphQL, brief, assistant). UI strings in `shared/messages/*-copy.ts`. Don't hand-edit `generated/` or `prisma/generated/`.
+
+**GraphQL:** `/api/graphql`. Resolvers must call `requireUserId(ctx)` — session user only, never a client-passed `userId`. Client operations in `lib/graphql/documents.ts`. UI mutations use `useAppMutation`. Narrow query data with `narrowTodos` / Zod in `types/`. After schema changes: `npm run generate:nexus`.
+
+**Supabase:** `getAll` / `setAll` cookies in `lib/supabase/proxy-client.ts` and `server-route.ts` — not the old get/set/remove API. Copy auth cookies onto redirect responses from `proxy.ts`.
+
+**Gemini** (`GEMINI_API_KEY`) is optional; brief and assistant must work without it.

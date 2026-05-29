@@ -1,94 +1,235 @@
-# Agentic Todo APP
+# Agentic Todo
 
-Next.js app for tasks, priorities, and a **daily brief**, backed by **Postgres** (Prisma), **GraphQL** at `/api/graphql`, and **Supabase Auth** (email + password).
+Full-stack task app with an AI **daily brief** and a **natural-language assistant** — priorities, due dates, and per-user task ordering in one workspace.
 
-## Requirements
+**Stack:** Next.js 16 · React 19 · GraphQL (Nexus) · Apollo Client · Prisma · PostgreSQL · Supabase Auth · Gemini (optional)
 
-- **Node.js** 20+
-- **PostgreSQL** (local or hosted)
-- **Supabase** project (Authentication → Email provider enabled)
+---
 
-## Environment
+## Setup
 
-Copy [`.env.example`](.env.example) to `.env.local` in the project root.
+### Requirements
 
-| Variable                        | Required | Purpose                                                                                                              |
-| ------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------- |
-| `DATABASE_URL`                  | Yes      | App runtime database URL.                                                                                            |
-| `DIRECT_URL`                    | Yes      | URL for `prisma migrate` (see `prisma.config.ts`). Use the same value as `DATABASE_URL` for a single local database. |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Yes      | Supabase project URL (Auth + session cookies).                                                                       |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes      | Supabase anon (public) API key.                                                                                      |
-| `GEMINI_API_KEY`                | No       | Optional server-side enhancement for the daily brief.                                                                |
-| `GEMINI_MODEL`                  | No       | Model id when using the optional brief enhancement (see `.env.example`).                                             |
-| `GEMINI_BRIEF_CACHE_SECONDS`    | No       | Brief response cache TTL in seconds (default in code: 300).                                                          |
+- **Node.js 20+** (NVM recommended)
+- **PostgreSQL** (local via Docker or hosted)
+- **Supabase** project with Email auth enabled
 
-In the **Supabase dashboard**: Authentication → **URL configuration** — set **Site URL** to `http://localhost:3000` (and your production URL when deployed). Add **Redirect URLs** including:
+### Install
 
-- `http://localhost:3000/auth/callback` (email confirmation, Google OAuth)
-- `http://localhost:3000/auth/reset-password` (password reset email link)
-- Production equivalents when deployed
+```bash
+git clone <repo-url>
+cd agentic-todo
+npm install
+```
 
-Restart the dev server after changing env files.
+### Database (local)
 
-## Auth behavior
+```bash
+docker compose up -d
+```
 
-- `proxy.ts` refreshes the Supabase session and sends unauthenticated visitors to `/login` (except `/login`, `/auth/*`, and `/api/*`).
-- GraphQL resolvers use the **signed-in user’s id** from the session (`ctx.userId`). The client no longer passes `userId` on queries or mutations, so users only read and write **their own** todos.
+Default connection: `postgresql://postgres:postgres@localhost:5432/postgres`
 
-### Password reset
+Set both `DATABASE_URL` and `DIRECT_URL` in `.env.local` (same value for a single local DB).
 
-| Route                    | Purpose                                          |
-| ------------------------ | ------------------------------------------------ |
-| `/login/forgot-password` | Request a reset email                            |
-| `/auth/reset-password`   | Set a new password after clicking the email link |
+### Environment
 
-Add **`http://localhost:3000/auth/reset-password`** to Supabase **Redirect URLs** (plus production URL). Use **Forgot password?** on the sign-in form.
+Copy `.env.example` → `.env.local` and fill in:
+
+| Variable                        | Required | Purpose                                     |
+| ------------------------------- | -------- | ------------------------------------------- |
+| `DATABASE_URL`                  | Yes      | App Postgres connection                     |
+| `DIRECT_URL`                    | Yes      | Migrations connection                       |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Yes      | Supabase project URL                        |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes      | Supabase anon key                           |
+| `GEMINI_API_KEY`                | No       | AI brief + assistant (app works without it) |
+| `GEMINI_MODEL`                  | No       | Model id (see `.env.example`)               |
+
+**Supabase → Authentication → URL configuration**
+
+- Site URL: `http://localhost:3000`
+- Redirect URLs:
+  - `http://localhost:3000/auth/callback`
+  - `http://localhost:3000/auth/reset-password`
+
+Enable **Email** (and **Google** if using OAuth). Restart the dev server after env changes.
+
+### Run migrations & start
+
+```bash
+npx prisma migrate deploy
+npm run dev
+```
+
+- App: [http://localhost:3000](http://localhost:3000)
+- GraphQL sandbox (dev): [http://localhost:3000/api/graphql](http://localhost:3000/api/graphql)
+
+Production-style local run:
+
+```bash
+npm run build
+npm run start
+```
+
+---
+
+## Onboarding
+
+Short map of how the app fits together:
+
+| Area                    | What it does                                                                       |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| **Daily brief** (`/`)   | Loads a summary of open/overdue tasks; assistant input below                       |
+| **My tasks** (`/tasks`) | List, filters, detail panel, manual reorder                                        |
+| **GraphQL**             | All todo CRUD + brief at `/api/graphql`; user id from session, not client          |
+| **Assistant**           | Natural language → intent → preview → execute (`/api/assistant` + Gemini optional) |
+| **Auth**                | Supabase SSR cookies; `proxy.ts` refreshes session and gates routes                |
+
+Without `GEMINI_API_KEY`, the brief uses templates and the assistant uses rule-based fallbacks.
+
+---
+
+## Project structure
+
+```
+├── .github/workflows/     CI (lint, typecheck, build on PRs)
+├── app/
+│   ├── (workspace)/         Daily brief (`/`) and tasks (`/tasks`)
+│   ├── api/
+│   │   ├── graphql/         GraphQL endpoint
+│   │   └── assistant/       Assistant interpret/execute API
+│   ├── auth/                Callback + reset-password routes
+│   └── login/               Sign-in, forgot password
+├── components/
+│   ├── assistant/           Chat input, messages, previews
+│   ├── auth/                Login, reset, forgot password forms
+│   ├── common/              Banners, confirm dialogs, profile badge
+│   ├── todo/                Task list, brief, sidebar, dialogs
+│   └── ui/                  Radix + Tailwind primitives
+├── hooks/                   Client hooks (`use-auth`, `use-assistant`, …)
+├── lib/
+│   ├── graphql/             Apollo documents
+│   └── supabase/            Browser + server + proxy clients
+├── modules/todo/
+│   ├── graphql/             Nexus resolvers, queries, mutations
+│   ├── assistant/           Intent parsing and execution
+│   └── agent/               Daily brief generation
+├── prisma/                  Schema and migrations
+├── shared/
+│   ├── messages/            UI copy (`*-copy.ts`)
+│   └── lib/                 Prisma client, Gemini helper
+├── generated/               Prisma client output (do not edit)
+├── prisma/generated/        GraphQL schema artifacts (do not edit)
+├── scripts/                 Nexus codegen, Gemini smoke test
+├── proxy.ts                 Session refresh + auth gate
+├── docker-compose.yml       Local Postgres
+└── .env.local               Local secrets (not committed)
+```
+
+---
+
+## Best practices
+
+### Imports
+
+Use the `@/` alias for project imports (maps to repo root). Avoid deep relative paths (`../../../`).
+
+### UI copy
+
+User-visible strings live in `shared/messages/*-copy.ts` — not inline in components.
+
+### GraphQL
+
+- Client operations: `lib/graphql/documents.ts`
+- Resolvers: `modules/todo/graphql/` — always scope with `requireUserId(ctx)`; never accept `userId` from the client
+- After schema changes: `npm run generate:nexus`
+- Narrow Apollo results with `narrowTodos` / Zod in `types/todo-view.ts`
+
+### Auth & Supabase
+
+- Session via `@supabase/ssr` with `getAll` / `setAll` cookies (`lib/supabase/proxy-client.ts`, `server-route.ts`)
+- Do not use deprecated per-cookie `get` / `set` / `remove` in proxy
+
+### Components
+
+- File names: `kebab-case.tsx`, named exports
+- Prisma/GraphQL model: `Todo`; UI may say “task”
+- Styling: Tailwind utilities + `cn()` from `@/lib/utils`; reuse `components/ui/*`
+
+### Generated code
+
+Do not hand-edit `generated/` or `prisma/generated/`. Regenerate via Prisma / `npm run generate:nexus`.
+
+---
 
 ## Scripts
 
-| Command                  | Description                                                      |
-| ------------------------ | ---------------------------------------------------------------- |
-| `npm run dev`            | Development server                                               |
-| `npm run build`          | Production build                                                 |
-| `npm run build:vercel`   | `prisma migrate deploy` then `next build`                        |
-| `npm run lint`           | ESLint                                                           |
-| `npm run generate:nexus` | Regenerate `prisma/generated/*` after GraphQL schema changes     |
-| `npm run test:gemini`    | Smoke-test optional brief API (needs network + `GEMINI_API_KEY`) |
+| Command                  | Description                        |
+| ------------------------ | ---------------------------------- |
+| `npm run dev`            | Development server                 |
+| `npm run build`          | Production build                   |
+| `npm run start`          | Run production build               |
+| `npm run build:vercel`   | `prisma migrate deploy` then build |
+| `npm run lint`           | ESLint (zero warnings)             |
+| `npm run type-check`     | TypeScript                         |
+| `npm run check`          | Lint + typecheck + build           |
+| `npm run format`         | Prettier write                     |
+| `npm run generate:nexus` | Regenerate GraphQL artifacts       |
 
-## Project layout (high level)
+---
 
-- `app/` — App Router pages, `api/graphql`, `auth/callback`, `login`
-- `components/todo/` — Task UI and daily brief
-- `components/auth/` — Sign-in / sign-up form
-- `modules/todo/` — GraphQL resolvers, agents, types
-- `prisma/` — Schema and migrations
-- `shared/lib/prisma.ts` — Prisma client
-- `proxy.ts` — Session refresh + auth gate for pages
+## Before committing your code
 
-## Links
+Husky runs lint-staged on commit. Before pushing, run:
 
-- [Next.js documentation](https://nextjs.org/docs)
-- [Prisma documentation](https://www.prisma.io/docs)
-- [Supabase Auth (Next.js)](https://supabase.com/docs/guides/auth/server-side/nextjs)
+```bash
+npm run format
+npm run lint
+npm run type-check
+```
 
-## Code conventions
+Or the full gate:
 
-| Area              | Convention                                        | Examples                                                                    |
-| ----------------- | ------------------------------------------------- | --------------------------------------------------------------------------- |
-| React components  | `kebab-case.tsx`, named exports                   | `task-create-dialog.tsx`, `daily-brief-panel.tsx`                           |
-| Hooks             | `use-*.ts`                                        | `use-assistant.ts`, `use-app-mutation.ts`                                   |
-| Domain / server   | `modules/todo/`                                   | `graphql/todo.mutations.ts`, `assistant/interpret-command.ts`               |
-| User-facing copy  | `shared/messages/*-copy.ts`                       | `ui-copy.ts` (labels), `error-copy.ts` (errors), `status-copy.ts` (success) |
-| Client GraphQL    | `lib/graphql/documents.ts`                        | Apollo operations (queries/mutations)                                       |
-| Data layer naming | Prisma/GraphQL use `Todo`; UI copy may say “task” | `Todo` type, “My tasks” nav label                                           |
+```bash
+npm run check
+```
 
-### Folder layout
+Do not commit `.env.local` or secrets. Add new env vars to `.env.example` when needed.
 
-- `app/` — routes, API handlers, auth callback
-- `components/` — React UI (`todo/`, `assistant/`, `common/`, `ui/`)
-- `hooks/` — client hooks
-- `lib/` — client infrastructure (Apollo, Supabase, formatters)
-- `modules/todo/` — server domain (GraphQL, agents, assistant)
-- `shared/` — isomorphic helpers and messages
-- `types/` — shared TypeScript types for the client
-- `generated/` / `prisma/generated/` — generated artifacts (do not hand-edit)
+---
+
+## Pull requests
+
+CI (`.github/workflows/pr-quality.yml`) runs on every PR:
+
+- `npm run lint`
+- `npm run type-check`
+- `npm run build`
+
+CI uses placeholder env vars for install/build only (no real database). Production secrets stay in Vercel / hosting, not in GitHub Actions.
+
+**Before opening a PR:** run `npm run check` locally.
+
+**PR description:** summarize what changed and how to verify (screenshots help for UI work).
+
+---
+
+## Deployment
+
+Typical path: **Vercel** + hosted Postgres + Supabase.
+
+```bash
+npm run build:vercel
+```
+
+Set production env vars (`DATABASE_URL`, `DIRECT_URL`, Supabase URLs/keys, optional `GEMINI_*`) in the Vercel project and add production URLs to Supabase redirect allowlist.
+
+### Recommended Git + Vercel flow
+
+1. **GitHub `main`:** enable branch protection — require PR, require **PR Quality** check to pass, no direct pushes.
+2. **Vercel → Settings → Git:** set **Production Branch** to `main` only.
+3. **Preview deployments:** PR branches get preview URLs — that is expected and is _not_ production until you merge to `main`.
+4. **Vercel GitHub app:** read access is enough for deploys; remove write access unless you need Vercel to comment on PRs.
+5. **Merge order:** CI green → review → merge to `main` → Vercel production deploy.
+
+Do not rely on Vercel preview URLs as “released” until the PR is merged.
