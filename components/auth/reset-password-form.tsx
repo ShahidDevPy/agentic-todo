@@ -82,7 +82,10 @@ export function ResetPasswordForm() {
       }
 
       const hash = window.location.hash;
-      if (hash && (hash.includes("access_token") || hash.includes("type=recovery"))) {
+      if (
+        hash &&
+        (hash.includes("access_token") || hash.includes("type=recovery"))
+      ) {
         const { data: sessionData, error: sessionError } =
           await supabase.auth.getSession();
         if (!cancelled && !sessionError && sessionData.session) {
@@ -157,7 +160,9 @@ export function ResetPasswordForm() {
     return (
       <Card className={cn(authCardClassName, "border-dashed")}>
         <CardHeader className={authHeaderClassName}>
-          <CardTitle className="text-lg sm:text-xl">Reset unavailable</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">
+            Reset unavailable
+          </CardTitle>
           <CardDescription>Supabase is not configured.</CardDescription>
         </CardHeader>
       </Card>
