@@ -206,6 +206,8 @@ CI (`.github/workflows/pr-quality.yml`) runs on every PR:
 - `npm run type-check`
 - `npm run build`
 
+CI uses placeholder env vars for install/build only (no real database). Production secrets stay in Vercel / hosting, not in GitHub Actions.
+
 **Before opening a PR:** run `npm run check` locally.
 
 **PR description:** summarize what changed and how to verify (screenshots help for UI work).
@@ -214,10 +216,20 @@ CI (`.github/workflows/pr-quality.yml`) runs on every PR:
 
 ## Deployment
 
-Typical path: Vercel (or similar) with hosted Postgres and Supabase.
+Typical path: **Vercel** + hosted Postgres + Supabase.
 
 ```bash
 npm run build:vercel
 ```
 
-Set production env vars (`DATABASE_URL`, `DIRECT_URL`, Supabase URLs/keys, optional `GEMINI_*`) and add production URLs to Supabase redirect allowlist.
+Set production env vars (`DATABASE_URL`, `DIRECT_URL`, Supabase URLs/keys, optional `GEMINI_*`) in the Vercel project and add production URLs to Supabase redirect allowlist.
+
+### Recommended Git + Vercel flow
+
+1. **GitHub `main`:** enable branch protection — require PR, require **PR Quality** check to pass, no direct pushes.
+2. **Vercel → Settings → Git:** set **Production Branch** to `main` only.
+3. **Preview deployments:** PR branches get preview URLs — that is expected and is _not_ production until you merge to `main`.
+4. **Vercel GitHub app:** read access is enough for deploys; remove write access unless you need Vercel to comment on PRs.
+5. **Merge order:** CI green → review → merge to `main` → Vercel production deploy.
+
+Do not rely on Vercel preview URLs as “released” until the PR is merged.
