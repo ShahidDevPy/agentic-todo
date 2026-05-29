@@ -1,91 +1,223 @@
 # Agentic Todo
 
-Full-stack task app with an AI **daily brief** and a **natural-language assistant**. Manage priorities, due dates, and ordering in one workspace — with preview-before-execute for assistant actions.
+Full-stack task app with an AI **daily brief** and a **natural-language assistant** — priorities, due dates, and per-user task ordering in one workspace.
 
-## Highlights
+**Stack:** Next.js 16 · React 19 · GraphQL (Nexus) · Apollo Client · Prisma · PostgreSQL · Supabase Auth · Gemini (optional)
 
-- **Daily brief** — summarizes open and overdue work when you open the app
-- **Assistant** — add, update, complete, or refresh tasks in plain English (optional voice input)
-- **Preview first** — confirms assistant actions before they run
-- **Task workspace** — priorities, due dates, starring, smart vs manual sort, per-user data
-- **Auth** — email sign-up/sign-in, Google OAuth, password reset (Supabase)
+---
 
-## Tech stack
+## Setup
 
-Next.js 16 · React 19 · GraphQL (Nexus) · Apollo Client · Prisma · PostgreSQL · Supabase Auth · Gemini (optional)
+### Requirements
 
-## Quick start
+- **Node.js 20+** (NVM recommended)
+- **PostgreSQL** (local via Docker or hosted)
+- **Supabase** project with Email auth enabled
 
-**Requirements:** Node.js 20+, PostgreSQL, Supabase project (Email provider enabled).
+### Install
 
-### 1. Database (local)
+```bash
+git clone <repo-url>
+cd agentic-todo
+npm install
+```
+
+### Database (local)
 
 ```bash
 docker compose up -d
 ```
 
-Default Postgres: `postgresql://postgres:postgres@localhost:5432/postgres`
+Default connection: `postgresql://postgres:postgres@localhost:5432/postgres`
 
-Use hosted Postgres instead if you prefer — set `DATABASE_URL` and `DIRECT_URL` accordingly.
+Set both `DATABASE_URL` and `DIRECT_URL` in `.env.local` (same value for a single local DB).
 
-### 2. App
+### Environment
+
+Copy `.env.example` → `.env.local` and fill in:
+
+| Variable                        | Required | Purpose                                     |
+| ------------------------------- | -------- | ------------------------------------------- |
+| `DATABASE_URL`                  | Yes      | App Postgres connection                     |
+| `DIRECT_URL`                    | Yes      | Migrations connection                       |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Yes      | Supabase project URL                        |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes      | Supabase anon key                           |
+| `GEMINI_API_KEY`                | No       | AI brief + assistant (app works without it) |
+| `GEMINI_MODEL`                  | No       | Model id (see `.env.example`)               |
+
+**Supabase → Authentication → URL configuration**
+
+- Site URL: `http://localhost:3000`
+- Redirect URLs:
+  - `http://localhost:3000/auth/callback`
+  - `http://localhost:3000/auth/reset-password`
+
+Enable **Email** (and **Google** if using OAuth). Restart the dev server after env changes.
+
+### Run migrations & start
 
 ```bash
-cp .env.example .env.local   # fill in values (see below)
-npm install
 npx prisma migrate deploy
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+- App: [http://localhost:3000](http://localhost:3000)
+- GraphQL sandbox (dev): [http://localhost:3000/api/graphql](http://localhost:3000/api/graphql)
 
-GraphQL sandbox (development): [http://localhost:3000/api/graphql](http://localhost:3000/api/graphql)
+Production-style local run:
 
-### Environment
+```bash
+npm run build
+npm run start
+```
 
-| Variable | Required | Purpose |
-| -------- | -------- | ------- |
-| `DATABASE_URL` | Yes | Postgres connection for the app |
-| `DIRECT_URL` | Yes | Postgres connection for migrations (same as `DATABASE_URL` locally) |
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anon key |
-| `GEMINI_API_KEY` | No | AI-enhanced daily brief and assistant parsing |
-| `GEMINI_MODEL` | No | Gemini model id (default in `.env.example`) |
+---
 
-Without `GEMINI_API_KEY`, the app still runs using template-based brief and rule-based assistant fallbacks.
+## Onboarding
 
-### Supabase setup
+Short map of how the app fits together:
 
-In **Authentication → URL configuration**:
+| Area                    | What it does                                                                       |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| **Daily brief** (`/`)   | Loads a summary of open/overdue tasks; assistant input below                       |
+| **My tasks** (`/tasks`) | List, filters, detail panel, manual reorder                                        |
+| **GraphQL**             | All todo CRUD + brief at `/api/graphql`; user id from session, not client          |
+| **Assistant**           | Natural language → intent → preview → execute (`/api/assistant` + Gemini optional) |
+| **Auth**                | Supabase SSR cookies; `proxy.ts` refreshes session and gates routes                |
 
-- **Site URL:** `http://localhost:3000` (plus production URL when deployed)
-- **Redirect URLs:**
-  - `http://localhost:3000/auth/callback` (OAuth, email confirmation)
-  - `http://localhost:3000/auth/reset-password` (password reset)
+Without `GEMINI_API_KEY`, the brief uses templates and the assistant uses rule-based fallbacks.
 
-Enable **Email** under sign-in providers. For Google sign-in, enable the **Google** provider and add the same callback URL.
-
-Restart the dev server after changing `.env.local`.
-
-## Scripts
-
-| Command | Description |
-| ------- | ----------- |
-| `npm run dev` | Development server |
-| `npm run build` | Production build |
-| `npm run start` | Run production build |
-| `npm run build:vercel` | Migrate DB then build (deploy) |
-| `npm run lint` | ESLint |
-| `npm run check` | Lint, typecheck, and build |
+---
 
 ## Project structure
 
 ```
-app/           Routes, GraphQL API, auth callbacks
-components/    UI (todo, assistant, auth)
-hooks/         Client hooks
-lib/           Apollo, Supabase, formatters
-modules/todo/  GraphQL resolvers, daily brief, assistant logic
-prisma/        Schema and migrations
-proxy.ts       Session refresh and auth gate
+├── .github/workflows/     CI (lint, typecheck, build on PRs)
+├── app/
+│   ├── (workspace)/         Daily brief (`/`) and tasks (`/tasks`)
+│   ├── api/
+│   │   ├── graphql/         GraphQL endpoint
+│   │   └── assistant/       Assistant interpret/execute API
+│   ├── auth/                Callback + reset-password routes
+│   └── login/               Sign-in, forgot password
+├── components/
+│   ├── assistant/           Chat input, messages, previews
+│   ├── auth/                Login, reset, forgot password forms
+│   ├── common/              Banners, confirm dialogs, profile badge
+│   ├── todo/                Task list, brief, sidebar, dialogs
+│   └── ui/                  Radix + Tailwind primitives
+├── hooks/                   Client hooks (`use-auth`, `use-assistant`, …)
+├── lib/
+│   ├── graphql/             Apollo documents
+│   └── supabase/            Browser + server + proxy clients
+├── modules/todo/
+│   ├── graphql/             Nexus resolvers, queries, mutations
+│   ├── assistant/           Intent parsing and execution
+│   └── agent/               Daily brief generation
+├── prisma/                  Schema and migrations
+├── shared/
+│   ├── messages/            UI copy (`*-copy.ts`)
+│   └── lib/                 Prisma client, Gemini helper
+├── generated/               Prisma client output (do not edit)
+├── prisma/generated/        GraphQL schema artifacts (do not edit)
+├── scripts/                 Nexus codegen, Gemini smoke test
+├── proxy.ts                 Session refresh + auth gate
+├── docker-compose.yml       Local Postgres
+└── .env.local               Local secrets (not committed)
 ```
+
+---
+
+## Best practices
+
+### Imports
+
+Use the `@/` alias for project imports (maps to repo root). Avoid deep relative paths (`../../../`).
+
+### UI copy
+
+User-visible strings live in `shared/messages/*-copy.ts` — not inline in components.
+
+### GraphQL
+
+- Client operations: `lib/graphql/documents.ts`
+- Resolvers: `modules/todo/graphql/` — always scope with `requireUserId(ctx)`; never accept `userId` from the client
+- After schema changes: `npm run generate:nexus`
+- Narrow Apollo results with `narrowTodos` / Zod in `types/todo-view.ts`
+
+### Auth & Supabase
+
+- Session via `@supabase/ssr` with `getAll` / `setAll` cookies (`lib/supabase/proxy-client.ts`, `server-route.ts`)
+- Do not use deprecated per-cookie `get` / `set` / `remove` in proxy
+
+### Components
+
+- File names: `kebab-case.tsx`, named exports
+- Prisma/GraphQL model: `Todo`; UI may say “task”
+- Styling: Tailwind utilities + `cn()` from `@/lib/utils`; reuse `components/ui/*`
+
+### Generated code
+
+Do not hand-edit `generated/` or `prisma/generated/`. Regenerate via Prisma / `npm run generate:nexus`.
+
+---
+
+## Scripts
+
+| Command                  | Description                        |
+| ------------------------ | ---------------------------------- |
+| `npm run dev`            | Development server                 |
+| `npm run build`          | Production build                   |
+| `npm run start`          | Run production build               |
+| `npm run build:vercel`   | `prisma migrate deploy` then build |
+| `npm run lint`           | ESLint (zero warnings)             |
+| `npm run type-check`     | TypeScript                         |
+| `npm run check`          | Lint + typecheck + build           |
+| `npm run format`         | Prettier write                     |
+| `npm run generate:nexus` | Regenerate GraphQL artifacts       |
+
+---
+
+## Before committing your code
+
+Husky runs lint-staged on commit. Before pushing, run:
+
+```bash
+npm run format
+npm run lint
+npm run type-check
+```
+
+Or the full gate:
+
+```bash
+npm run check
+```
+
+Do not commit `.env.local` or secrets. Add new env vars to `.env.example` when needed.
+
+---
+
+## Pull requests
+
+CI (`.github/workflows/pr-quality.yml`) runs on every PR:
+
+- `npm run lint`
+- `npm run type-check`
+- `npm run build`
+
+**Before opening a PR:** run `npm run check` locally.
+
+**PR description:** summarize what changed and how to verify (screenshots help for UI work).
+
+---
+
+## Deployment
+
+Typical path: Vercel (or similar) with hosted Postgres and Supabase.
+
+```bash
+npm run build:vercel
+```
+
+Set production env vars (`DATABASE_URL`, `DIRECT_URL`, Supabase URLs/keys, optional `GEMINI_*`) and add production URLs to Supabase redirect allowlist.
