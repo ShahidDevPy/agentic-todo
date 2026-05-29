@@ -74,6 +74,8 @@ export function TaskCreateDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
         className={cn(
           "flex w-full max-w-[100vw] flex-col gap-0 overflow-hidden p-0 sm:max-h-[90vh] sm:max-w-lg",
           "max-h-[min(92dvh,100dvh)]",

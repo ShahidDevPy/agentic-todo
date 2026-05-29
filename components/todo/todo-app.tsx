@@ -466,11 +466,15 @@ export function TodoApp() {
               starredOnly={starredOnly}
               onStarredOnlyChange={setStarredOnly}
               onClearRequest={() => {
-                void refetchCompletedCount();
-                setClearConfirmOpen(true);
+                void (async () => {
+                  const result = await refetchCompletedCount();
+                  const count =
+                    result.data?.completedTodosCount ?? completedCount;
+                  if (count > 0) setClearConfirmOpen(true);
+                })();
               }}
               clearing={clearing}
-              canClear={!!userId}
+              canClear={!!userId && completedCount > 0}
               displayTodos={displayTodos}
               loading={loading}
               listEmptyLabel={listEmptyLabel}
