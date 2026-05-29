@@ -1,17 +1,8 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-function publicSupabaseUrl(): string | undefined {
-  return process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || undefined;
-}
-
-function publicSupabaseAnonKey(): string | undefined {
-  return (
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() ||
-    process.env.SUPABASE_ANON_KEY?.trim() ||
-    undefined
-  );
-}
+import {
+  copyResponseCookies,
+  createSupabaseProxyClient,
+} from "@/lib/supabase/proxy-client";
 
 function isPublicPath(pathname: string): boolean {
   if (pathname.startsWith("/login")) return true;
@@ -22,57 +13,30 @@ function isPublicPath(pathname: string): boolean {
 }
 
 export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({
-    request: { headers: request.headers },
-  });
+  const { supabase, getResponse } = createSupabaseProxyClient(request);
 
-  const url = publicSupabaseUrl();
-  const key = publicSupabaseAnonKey();
-  if (!url?.trim() || !key?.trim()) {
-    return response;
+  if (!supabase) {
+    return getResponse();
   }
-
-  const supabase = createServerClient(url, key, {
-    cookies: {
-      get(name: string) {
-        return request.cookies.get(name)?.value;
-      },
-      set(name: string, value: string, options: CookieOptions) {
-        request.cookies.set({ name, value, ...options });
-        response = NextResponse.next({
-          request: { headers: request.headers },
-        });
-        response.cookies.set({ name, value, ...options });
-      },
-      remove(name: string, options: CookieOptions) {
-        request.cookies.set({ name, value: "", ...options });
-        response = NextResponse.next({
-          request: { headers: request.headers },
-        });
-        response.cookies.set({ name, value: "", ...options });
-      },
-    },
-  });
 
   const pathname = request.nextUrl.pathname;
-
-  if (pathname.startsWith("/api")) {
-    await supabase.auth.getUser();
-    return response;
-  }
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const sessionResponse = getResponse();
+
   if (!user && !isPublicPath(pathname)) {
     const login = new URL("/login", request.url);
     const nextPath = `${pathname}${request.nextUrl.search}`;
     login.searchParams.set("next", nextPath || "/");
-    return NextResponse.redirect(login);
+    const redirectResponse = NextResponse.redirect(login);
+    copyResponseCookies(sessionResponse, redirectResponse);
+    return redirectResponse;
   }
 
-  return response;
+  return sessionResponse;
 }
 
 export const config = {

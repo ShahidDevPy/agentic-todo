@@ -1,6 +1,7 @@
 "use client";
 
 import { ListTodo, LogOut, Plus, Sparkles } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,30 @@ type Props = {
   onSignOut: () => Promise<void>;
 };
 
+function SidebarBrand({ titleClassName }: { titleClassName?: string }) {
+  return (
+    <div className="flex min-w-0 items-center gap-2">
+      <Image
+        src="/favicon.ico"
+        alt=""
+        width={24}
+        height={24}
+        className="size-6 shrink-0 rounded-sm"
+        aria-hidden
+        unoptimized
+      />
+      <p
+        className={cn(
+          "truncate font-semibold tracking-tight",
+          titleClassName ?? "text-lg",
+        )}
+      >
+        {uiCopy.appTitle}
+      </p>
+    </div>
+  );
+}
+
 export function TaskSidebar({ onCreateTask, userEmail, onSignOut }: Props) {
   const pathname = usePathname();
   const router = useRouter();
@@ -21,9 +46,7 @@ export function TaskSidebar({ onCreateTask, userEmail, onSignOut }: Props) {
   return (
     <aside className="border-border bg-card/50 flex w-full shrink-0 flex-col border-b lg:sticky lg:top-0 lg:w-60 lg:shrink-0 lg:self-start lg:border-r lg:border-b-0 lg:px-2 lg:pb-6 lg:pt-4">
       <div className="border-border flex items-center justify-between gap-2 border-b px-2.5 py-2.5 lg:hidden">
-        <p className="truncate text-base font-semibold tracking-tight sm:text-lg">
-          {uiCopy.appTitle}
-        </p>
+        <SidebarBrand titleClassName="text-base sm:text-lg" />
         <Button
           type="button"
           size="sm"
@@ -36,9 +59,7 @@ export function TaskSidebar({ onCreateTask, userEmail, onSignOut }: Props) {
       </div>
 
       <div className="hidden px-2 pb-3 lg:block">
-        <p className="text-lg font-semibold tracking-tight">
-          {uiCopy.appTitle}
-        </p>
+        <SidebarBrand />
       </div>
 
       <div className="hidden px-2 pb-3 lg:block">
