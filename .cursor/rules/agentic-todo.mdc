@@ -14,3 +14,5 @@ Next.js **16** — read `node_modules/next/dist/docs/` before changing routes, `
 **Supabase:** `getAll` / `setAll` cookies in `lib/supabase/proxy-client.ts` and `server-route.ts` — not the old get/set/remove API. Copy auth cookies onto redirect responses from `proxy.ts`.
 
 **Gemini** (`GEMINI_API_KEY`) is optional; brief and assistant must work without it.
+
+**Git commits:** never add `Co-authored-by: Cursor` or other Cursor attribution trailers.
