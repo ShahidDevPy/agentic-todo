@@ -5,7 +5,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Agentic Todo",
   description:
-    "AI-assisted task management with GraphQL, Prisma, and a daily brief.",
+    "Tasks, priorities, and a daily brief — manage your day in one place.",
 };
 
 const fontVars = {
