@@ -5,13 +5,6 @@ on:
     branches:
       - "**"
 
-# Prisma postinstall + Next build import env at compile time; no live DB connection needed.
-env:
-  DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
-  DIRECT_URL: postgresql://ci:ci@127.0.0.1:5432/ci
-  NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-build-placeholder-anon-key
-
 jobs:
   quality:
     runs-on: ubuntu-latest
