@@ -17,6 +17,7 @@ export const uiCopy = {
     morning: "Good morning",
     afternoon: "Good afternoon",
     evening: "Good evening",
+    hello: "Hello",
     /** Greeting when `first_name` is not in profile (no email in this slot). */
     you: "You",
     name: "there",
