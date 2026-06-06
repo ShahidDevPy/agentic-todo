@@ -3,6 +3,15 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
+import {
+  authCardClassName,
+  authFooterClassName,
+  authHeaderClassName,
+} from "@/components/auth/auth-card-styles";
+import { AuthCardSkeleton } from "@/components/auth/auth-card-skeleton";
+import { AuthFormAlert } from "@/components/auth/auth-form-alert";
+import { PasswordField } from "@/components/auth/password-field";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,19 +20,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { validatePasswordPair } from "@/lib/auth/password";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 import { authCopy } from "@/shared/messages/auth-copy";
-
-const authCardClassName = cn(
-  "w-full max-w-md gap-0 overflow-hidden rounded-2xl border-border/60 py-0 shadow-sm ring-1 ring-black/[0.04] dark:ring-white/[0.06]",
-);
-
-const authHeaderClassName =
-  "border-border/50 space-y-1.5 border-b px-5 pb-4 pt-5 sm:px-6 sm:pt-6";
 
 function stripRecoveryParamsFromUrl() {
   window.history.replaceState({}, "", "/auth/reset-password");
@@ -126,7 +127,7 @@ export function ResetPasswordForm() {
       setError(null);
       setMessage(null);
       if (!isSupabaseConfigured()) {
-        setError("Supabase is not configured.");
+        setError(authCopy.resetPassword.supabaseNotConfigured);
         return;
       }
       const validation = validatePasswordPair(password, confirm);
@@ -161,22 +162,18 @@ export function ResetPasswordForm() {
       <Card className={cn(authCardClassName, "border-dashed")}>
         <CardHeader className={authHeaderClassName}>
           <CardTitle className="text-lg sm:text-xl">
-            Reset unavailable
+            {authCopy.resetPassword.unavailableTitle}
           </CardTitle>
-          <CardDescription>Supabase is not configured.</CardDescription>
+          <CardDescription>
+            {authCopy.resetPassword.supabaseNotConfigured}
+          </CardDescription>
         </CardHeader>
       </Card>
     );
   }
 
   if (checkingSession) {
-    return (
-      <Card className={authCardClassName}>
-        <CardHeader className={authHeaderClassName}>
-          <CardDescription>Loading…</CardDescription>
-        </CardHeader>
-      </Card>
-    );
+    return <AuthCardSkeleton />;
   }
 
   if (!hasSession) {
@@ -210,62 +207,48 @@ export function ResetPasswordForm() {
       </CardHeader>
       <form onSubmit={onSubmit}>
         <CardContent className="space-y-4 px-5 pb-2 pt-4 sm:px-6 sm:pt-5">
-          <div className="space-y-2">
-            <label
-              htmlFor="newPassword"
-              className="text-sm font-medium leading-none"
-            >
-              {authCopy.resetPassword.newPasswordLabel}
-            </label>
-            <Input
-              id="newPassword"
-              type="password"
-              autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="h-10"
-            />
-          </div>
-          <div className="space-y-2">
-            <label
-              htmlFor="confirmPassword"
-              className="text-sm font-medium leading-none"
-            >
-              {authCopy.resetPassword.confirmPasswordLabel}
-            </label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              required
-              minLength={6}
-              className="h-10"
-            />
-          </div>
+          <PasswordField
+            id="newPassword"
+            label={authCopy.resetPassword.newPasswordLabel}
+            hint={authCopy.login.passwordHint}
+            autoComplete="new-password"
+            value={password}
+            onChange={setPassword}
+            required
+            minLength={6}
+            disabled={loading}
+          />
+          <PasswordField
+            id="confirmPassword"
+            label={authCopy.resetPassword.confirmPasswordLabel}
+            autoComplete="new-password"
+            value={confirm}
+            onChange={setConfirm}
+            required
+            minLength={6}
+            disabled={loading}
+          />
           {error ? (
-            <p className="text-destructive text-sm" role="alert">
-              {error}
-            </p>
+            <AuthFormAlert variant="error">{error}</AuthFormAlert>
           ) : null}
           {message ? (
-            <p className="text-muted-foreground text-sm" role="status">
-              {message}
-            </p>
+            <AuthFormAlert variant="success">{message}</AuthFormAlert>
           ) : null}
         </CardContent>
-        <div className="border-border/50 border-t px-5 py-4 sm:px-6 sm:py-5">
+        <div className={authFooterClassName}>
           <Button
             type="submit"
             className="h-10 w-full sm:w-auto sm:min-w-[7.5rem]"
             disabled={loading}
           >
-            {loading
-              ? authCopy.resetPassword.saving
-              : authCopy.resetPassword.submit}
+            {loading ? (
+              <>
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+                {authCopy.resetPassword.saving}
+              </>
+            ) : (
+              authCopy.resetPassword.submit
+            )}
           </Button>
         </div>
       </form>

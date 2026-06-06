@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
+import {
+  authCardClassName,
+  authFooterClassName,
+  authHeaderClassName,
+} from "@/components/auth/auth-card-styles";
+import { AuthFormAlert } from "@/components/auth/auth-form-alert";
+import { GoogleIcon } from "@/components/auth/google-icon";
+import { PasswordField } from "@/components/auth/password-field";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,6 +22,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   PROFILE_FIRST_NAME_KEY,
   PROFILE_LAST_NAME_KEY,
@@ -24,18 +34,19 @@ import { authCopy } from "@/shared/messages/auth-copy";
 
 type Mode = "signIn" | "signUp";
 
-const authCardClassName = cn(
-  "w-full max-w-md gap-0 overflow-hidden rounded-2xl border-border/60 py-0 shadow-sm ring-1 ring-black/[0.04] dark:ring-white/[0.06]",
-);
-
-const authHeaderClassName =
-  "border-border/50 space-y-1.5 border-b px-5 pb-4 pt-5 sm:px-6 sm:pt-6";
+function redirectHint(next: string): string | null {
+  if (next === "/tasks") return authCopy.login.redirectHintTasks;
+  if (next === "/") return authCopy.login.redirectHintBrief;
+  return null;
+}
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/";
   const authError = searchParams.get("error");
+  const emailRef = useRef<HTMLInputElement>(null);
+  const firstNameRef = useRef<HTMLInputElement>(null);
 
   const [mode, setMode] = useState<Mode>("signIn");
   const [email, setEmail] = useState("");
@@ -46,8 +57,11 @@ export function LoginForm() {
   const [oauthLoading, setOauthLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(
-    authError === "auth" ? "Could not complete sign-in. Try again." : null,
+    authError === "auth" ? authCopy.login.authCallbackError : null,
   );
+
+  const formDisabled = loading || oauthLoading;
+  const hint = redirectHint(next.startsWith("/") ? next : "/");
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
@@ -59,12 +73,26 @@ export function LoginForm() {
     });
   }, [next, router]);
 
+  useEffect(() => {
+    if (mode === "signUp") {
+      firstNameRef.current?.focus();
+    } else {
+      emailRef.current?.focus();
+    }
+  }, [mode]);
+
+  function switchMode(nextMode: Mode) {
+    setMode(nextMode);
+    setError(null);
+    setMessage(null);
+  }
+
   const signInWithGoogle = useCallback(async () => {
     setError(null);
     setMessage(null);
     setMode("signIn");
     if (!isSupabaseConfigured()) {
-      setError("Supabase is not configured.");
+      setError(authCopy.login.supabaseNotConfigured);
       return;
     }
     setOauthLoading(true);
@@ -89,20 +117,20 @@ export function LoginForm() {
       setError(null);
       setMessage(null);
       if (!isSupabaseConfigured()) {
-        setError("Supabase is not configured.");
+        setError(authCopy.login.supabaseNotConfigured);
         return;
       }
       const supabase = getSupabaseBrowserClient();
       const trimmed = email.trim();
       if (!trimmed || !password) {
-        setError("Enter email and password.");
+        setError(authCopy.login.enterEmailPassword);
         return;
       }
       if (mode === "signUp") {
         const fn = firstName.trim();
         const ln = lastName.trim();
         if (!fn || !ln) {
-          setError("Enter your first and last name.");
+          setError(authCopy.login.enterName);
           return;
         }
       }
@@ -140,9 +168,7 @@ export function LoginForm() {
               msg.includes("already exists") ||
               msg.includes("user already registered")
             ) {
-              setError(
-                "This email is already registered. Sign in instead, or use Google.",
-              );
+              setError(authCopy.login.emailAlreadyRegistered);
               setMode("signIn");
               return;
             }
@@ -154,16 +180,12 @@ export function LoginForm() {
             Array.isArray(data.user.identities) &&
             data.user.identities.length === 0
           ) {
-            setError(
-              "This email is already registered. Sign in instead, or use Google.",
-            );
+            setError(authCopy.login.emailAlreadyRegistered);
             setMode("signIn");
             return;
           }
           if (data.user && !data.session) {
-            setMessage(
-              "Check your email to confirm your account, then sign in.",
-            );
+            setMessage(authCopy.login.checkEmailConfirm);
             setMode("signIn");
             return;
           }
@@ -182,7 +204,7 @@ export function LoginForm() {
       <Card className={cn(authCardClassName, "border-dashed")}>
         <CardHeader className={authHeaderClassName}>
           <CardTitle className="text-lg sm:text-xl">
-            Sign in unavailable
+            {authCopy.login.unavailableTitle}
           </CardTitle>
           <CardDescription>
             Add{" "}
@@ -206,15 +228,27 @@ export function LoginForm() {
 
   return (
     <Card className={authCardClassName}>
-      <CardHeader className={authHeaderClassName}>
-        <CardTitle className="text-lg sm:text-xl">
-          {mode === "signIn" ? "Sign in" : "Create account"}
-        </CardTitle>
+      <CardHeader className={cn(authHeaderClassName, "space-y-3")}>
+        <Tabs value={mode} onValueChange={(value) => switchMode(value as Mode)}>
+          <TabsList className="h-10 w-full">
+            <TabsTrigger value="signIn" disabled={formDisabled}>
+              {authCopy.login.signInTab}
+            </TabsTrigger>
+            <TabsTrigger value="signUp" disabled={formDisabled}>
+              {authCopy.login.signUpTab}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
         <CardDescription className="text-pretty">
           {mode === "signIn"
-            ? "Sign in with the email and password for your workspace."
-            : "We’ll save your name to your profile so the app can greet you by first name."}
+            ? authCopy.login.signInDescription
+            : authCopy.login.signUpDescription}
         </CardDescription>
+        {hint ? (
+          <p className="text-muted-foreground text-xs leading-relaxed">
+            {hint}
+          </p>
+        ) : null}
       </CardHeader>
       <form onSubmit={onSubmit}>
         <CardContent className="space-y-4 px-5 pb-2 pt-4 sm:px-6 sm:pt-5">
@@ -222,26 +256,27 @@ export function LoginForm() {
             <Button
               type="button"
               variant="outline"
-              className="h-10 w-full border-border/80 bg-background font-normal"
-              disabled={loading || oauthLoading}
+              className="h-10 w-full border-border/80 bg-background font-normal dark:border-input dark:bg-card"
+              disabled={formDisabled}
               onClick={() => void signInWithGoogle()}
-              aria-label="Continue with Google"
+              aria-label={authCopy.login.continueWithGoogle}
             >
               {oauthLoading ? (
-                "Redirecting…"
+                <>
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                  {authCopy.login.redirectingGoogle}
+                </>
               ) : (
                 <>
-                  <span className="mr-2 inline-flex size-5 items-center justify-center rounded-sm bg-[#4285F4] text-[11px] font-bold text-white">
-                    G
-                  </span>
-                  Continue with Google
+                  <GoogleIcon className="size-5" />
+                  {authCopy.login.continueWithGoogle}
                 </>
               )}
             </Button>
             <div className="flex items-center gap-3">
               <Separator className="flex-1" />
               <span className="text-muted-foreground shrink-0 text-xs">
-                or email
+                {authCopy.login.orEmail}
               </span>
               <Separator className="flex-1" />
             </div>
@@ -253,9 +288,10 @@ export function LoginForm() {
                   htmlFor="firstName"
                   className="text-sm font-medium leading-none"
                 >
-                  First name
+                  {authCopy.login.firstNameLabel}
                 </label>
                 <Input
+                  ref={firstNameRef}
                   id="firstName"
                   name="firstName"
                   type="text"
@@ -263,6 +299,7 @@ export function LoginForm() {
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   required={mode === "signUp"}
+                  disabled={formDisabled}
                   className="h-10"
                 />
               </div>
@@ -271,7 +308,7 @@ export function LoginForm() {
                   htmlFor="lastName"
                   className="text-sm font-medium leading-none"
                 >
-                  Last name
+                  {authCopy.login.lastNameLabel}
                 </label>
                 <Input
                   id="lastName"
@@ -281,6 +318,7 @@ export function LoginForm() {
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   required={mode === "signUp"}
+                  disabled={formDisabled}
                   className="h-10"
                 />
               </div>
@@ -288,84 +326,72 @@ export function LoginForm() {
           ) : null}
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium leading-none">
-              Email
+              {authCopy.login.emailLabel}
             </label>
             <Input
+              ref={emailRef}
               id="email"
               type="email"
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={formDisabled}
               className="h-10"
             />
           </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <label
-                htmlFor="password"
-                className="text-sm font-medium leading-none"
-              >
-                Password
-              </label>
-              {mode === "signIn" ? (
+          <PasswordField
+            id="password"
+            label={authCopy.login.passwordLabel}
+            hint={mode === "signUp" ? authCopy.login.passwordHint : undefined}
+            autoComplete={
+              mode === "signIn" ? "current-password" : "new-password"
+            }
+            value={password}
+            onChange={setPassword}
+            required
+            minLength={6}
+            disabled={formDisabled}
+            labelExtra={
+              mode === "signIn" ? (
                 <Link
                   href={`/login/forgot-password?next=${encodeURIComponent(next.startsWith("/") ? next : "/")}`}
                   className="text-muted-foreground hover:text-foreground text-xs underline-offset-4 hover:underline"
                 >
                   {authCopy.login.forgotPassword}
                 </Link>
-              ) : null}
-            </div>
-            <Input
-              id="password"
-              type="password"
-              autoComplete={
-                mode === "signIn" ? "current-password" : "new-password"
-              }
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="h-10"
-            />
-          </div>
+              ) : undefined
+            }
+          />
           {error ? (
-            <p className="text-destructive text-sm" role="alert">
-              {error}
-            </p>
+            <AuthFormAlert variant="error">{error}</AuthFormAlert>
           ) : null}
           {message ? (
-            <p className="text-muted-foreground text-sm">{message}</p>
+            <AuthFormAlert variant="success">{message}</AuthFormAlert>
           ) : null}
         </CardContent>
-        <div className="border-border/50 flex flex-col gap-3 border-t px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
+        <div className={authFooterClassName}>
           <Button
             type="submit"
             className="h-10 w-full sm:w-auto sm:min-w-[7.5rem]"
-            disabled={loading || oauthLoading}
+            disabled={formDisabled}
           >
-            {loading
-              ? "Please wait…"
-              : mode === "signIn"
-                ? "Sign in"
-                : "Sign up"}
-          </Button>
-          <button
-            type="button"
-            className={cn(
-              "text-muted-foreground hover:text-foreground text-center text-sm underline-offset-4 hover:underline sm:text-left",
+            {loading ? (
+              <>
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+                {authCopy.login.pleaseWait}
+              </>
+            ) : mode === "signIn" ? (
+              authCopy.login.signInSubmit
+            ) : (
+              authCopy.login.signUpSubmit
             )}
-            onClick={() => {
-              setMode((m) => (m === "signIn" ? "signUp" : "signIn"));
-              setError(null);
-              setMessage(null);
-            }}
-          >
-            {mode === "signIn"
-              ? "Need an account? Sign up"
-              : "Have an account? Sign in"}
-          </button>
+          </Button>
+          {mode === "signUp" ? (
+            <p className="text-muted-foreground text-center text-xs leading-relaxed sm:text-left">
+              {authCopy.login.signUpTrust}
+            </p>
+          ) : null}
         </div>
       </form>
     </Card>
