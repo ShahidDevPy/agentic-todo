@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
+import {
+  authCardClassName,
+  authFooterClassName,
+  authHeaderClassName,
+} from "@/components/auth/auth-card-styles";
+import { AuthFormAlert } from "@/components/auth/auth-form-alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,13 +25,6 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 import { authCopy } from "@/shared/messages/auth-copy";
 
-const authCardClassName = cn(
-  "w-full max-w-md gap-0 overflow-hidden rounded-2xl border-border/60 py-0 shadow-sm ring-1 ring-black/[0.04] dark:ring-white/[0.06]",
-);
-
-const authHeaderClassName =
-  "border-border/50 space-y-1.5 border-b px-5 pb-4 pt-5 sm:px-6 sm:pt-6";
-
 export function ForgotPasswordForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? "/";
@@ -32,23 +32,28 @@ export function ForgotPasswordForm() {
     next && next.startsWith("/")
       ? `/login?next=${encodeURIComponent(next)}`
       : "/login";
+  const emailRef = useRef<HTMLInputElement>(null);
 
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    emailRef.current?.focus();
+  }, []);
+
   const onSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
       setError(null);
       if (!isSupabaseConfigured()) {
-        setError("Supabase is not configured.");
+        setError(authCopy.forgotPassword.supabaseNotConfigured);
         return;
       }
       const trimmed = email.trim();
       if (!trimmed) {
-        setError("Enter your email address.");
+        setError(authCopy.forgotPassword.enterEmail);
         return;
       }
       setLoading(true);
@@ -78,7 +83,7 @@ export function ForgotPasswordForm() {
       <Card className={cn(authCardClassName, "border-dashed")}>
         <CardHeader className={authHeaderClassName}>
           <CardTitle className="text-lg sm:text-xl">
-            Reset unavailable
+            {authCopy.forgotPassword.unavailableTitle}
           </CardTitle>
           <CardDescription>
             Configure Supabase env vars in{" "}
@@ -109,13 +114,14 @@ export function ForgotPasswordForm() {
               {authCopy.forgotPassword.emailLabel}
             </label>
             <Input
+              ref={emailRef}
               id="email"
               type="email"
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              disabled={sent}
+              disabled={sent || loading}
               className="h-10"
             />
           </div>
@@ -123,25 +129,33 @@ export function ForgotPasswordForm() {
             {authCopy.forgotPassword.googleHint}
           </p>
           {error ? (
-            <p className="text-destructive text-sm" role="alert">
-              {error}
-            </p>
+            <AuthFormAlert variant="error">{error}</AuthFormAlert>
           ) : null}
           {sent ? (
-            <p className="text-muted-foreground text-sm" role="status">
+            <AuthFormAlert variant="success">
               {authCopy.forgotPassword.success}
-            </p>
+            </AuthFormAlert>
           ) : null}
         </CardContent>
-        <div className="border-border/50 flex flex-col gap-3 border-t px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
+        <div
+          className={cn(
+            authFooterClassName,
+            "sm:flex-row sm:items-center sm:justify-between",
+          )}
+        >
           <Button
             type="submit"
             className="h-10 w-full sm:w-auto sm:min-w-[7.5rem]"
             disabled={loading || sent}
           >
-            {loading
-              ? authCopy.forgotPassword.sending
-              : authCopy.forgotPassword.submit}
+            {loading ? (
+              <>
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+                {authCopy.forgotPassword.sending}
+              </>
+            ) : (
+              authCopy.forgotPassword.submit
+            )}
           </Button>
           <Link
             href={loginHref}
